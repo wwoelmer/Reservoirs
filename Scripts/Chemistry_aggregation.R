@@ -26,6 +26,23 @@ chemistry <- raw_chem %>%
 # Write to CSV (using write.csv for now; want ISO format embedded?)
 write.csv(chemistry, './Formatted_Data/chemistry.csv', row.names=F)
 
+#### Chemistry diagnostic plots ####
+chemistry_long <- chemistry %>% 
+  select(-infTPloads_g) %>%
+  gather(metric, value, TN_ugL:DOC_mgL)
+  
+# FCR deep hole data
+ggplot(subset(chemistry_long, Reservoir=='FCR' & Site=="50"), aes(x = DateTime, y = value, col=as.factor(Depth_m))) +
+  geom_point() +
+  facet_grid(metric ~ ., scales='free') +
+  scale_x_datetime(date_breaks="1 year", date_labels = "%Y")
+
+# Non-FCR reservoir deep hole data
+ggplot(subset(chemistry_long, Reservoir!='FCR' & Site=="50"), aes(x = DateTime, y = value, col=as.factor(Depth_m))) +
+  geom_point() +
+  facet_grid(metric ~ Reservoir, scales='free') +
+  scale_x_datetime(date_breaks="1 year", date_labels = "%Y")
+
 ##!! Check reasonable precision of nutrient concentrations for reporting; KF rounded NO3 and PO4 to 2 decimal(?)
 ##!! Do we retain a "Notes" column in EDI version? If not, should hand-check these caveats before final version
 ##!! Some nutrient concentrations <0 but retained... should check! 
