@@ -24,7 +24,7 @@ chemistry <- raw_chem %>%
   arrange(DateTime, Reservoir, Depth_m) 
 
 # Write to CSV (using write.csv for now; want ISO format embedded?)
-write.csv('./Formatted_Data/chemistry.csv', row.names=F)
+write.csv(chemistry, './Formatted_Data/chemistry.csv', row.names=F)
 
 ##!! Check reasonable precision of nutrient concentrations for reporting; KF rounded NO3 and PO4 to 2 decimal(?)
 ##!! Do we retain a "Notes" column in EDI version? If not, should hand-check these caveats before final version
