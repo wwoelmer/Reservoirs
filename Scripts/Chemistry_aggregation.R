@@ -10,18 +10,20 @@ raw_chem <- dir(path = "./Data", pattern = "*_Chemistry.csv") %>%
 
 chemistry <- raw_chem %>%
   select(-(DIC_mgL:CH4_ppm), -(`OI TOC Conc (ppm)`:`Vario TNb Mean of 3 reps`),
-         -(`OI DOC Conc (ppm)`:`Vario DNb Mean of 3 reps`)) %>%
-  rename(Depth_m = Depth, DateTime = Date) %>%
+         -(`Used OI DIC Conc (ppm)`:`Vario DC Mean of 3 reps`), -(`Vario DNb Mean of 3 reps`)) %>%
+  rename(Depth_m = Depth, DateTime = Date, DOC_OIAnalytical_mgL = DOC_mgL) %>%
   mutate(DateTime = ymd_hms(DateTime)) %>%
   group_by(Reservoir, DateTime, Notes) %>% # columns not to parse to numeric
   mutate_if(is.character,funs(round(as.double(.), 2))) %>%  # parse all other columns to numeric
   mutate(NO3NO2_ugL = ifelse(is.na(NO3NO2_ugL), NO3_ugL, NO3NO2_ugL),  # move NO3_ugL values to NO3NO2 column
          SRP_ugL = ifelse(is.na(SRP_ugL), PO4_ugL, SRP_ugL), # move PO4 values to SRP column
-         TP_ugL = ifelse((Reservoir == "FCR" & Year == 2013), NA, TP_ugL)) %>% 
+         TP_ugL = ifelse((Reservoir == "FCR" & Year == 2013), NA, TP_ugL),
+         DOC_OIAnalytical_mgL = ifelse((is.na(DOC_OIAnalytical_mgL) & Year <= 2016), `OI DOC Conc (ppm)`, DOC_OIAnalytical_mgL),
+         DOC_VarioDOC_mgL = ifelse(Year >= 2016, `Vario DOC Mean of 3 reps`, NA)) %>% 
   mutate(Site = ifelse(Depth_m != 999, 50, 100)) %>% # Add site ID; 50 = deep hole; 100 = inflow
   mutate(Depth_m = replace(Depth_m, Depth_m == 999, 100)) %>% ##!! What should Depth_m be for inflow??
   select(Reservoir, Site, DateTime, Depth_m, TN_ugL, TP_ugL, infTPloads_g, # reorder columns by name
-         NH4_ugL, NO3NO2_ugL, SRP_ugL, DOC_mgL, Notes) %>%
+         NH4_ugL, NO3NO2_ugL, SRP_ugL, DOC_OIAnalytical_mgL, DOC_VarioDOC_mgL, Notes) %>%
   arrange(DateTime, Reservoir, Depth_m) 
 
 # Write to CSV (using write.csv for now; want ISO format embedded?)
@@ -30,7 +32,7 @@ write.csv(chemistry, './Formatted_Data/chemistry.csv', row.names=F)
 #### Chemistry diagnostic plots ####
 chemistry_long <- chemistry %>% 
   select(-infTPloads_g) %>%
-  gather(metric, value, TN_ugL:DOC_mgL) %>% 
+  gather(metric, value, TN_ugL:DOC_VarioDOC_mgL) %>% 
   mutate(year = year(DateTime))
 
 # Plot range of values per constituent per year for each reservoir; 
