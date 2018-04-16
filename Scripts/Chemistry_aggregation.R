@@ -24,7 +24,7 @@ chemistry <- raw_chem %>%
                                        `OI DOC Conc (ppm)`, DOC_OIAnalytical_mgL),
          DOC_VarioDOC_mgL = ifelse(Year >= 2016, `Vario DOC Mean of 3 reps`, NA),  
          Site = ifelse(Depth_m != 999, 50, 100), # Add site ID; 50 = deep hole; 100 = inflow
-         Depth_m = replace(Depth_m, Depth_m == 999, 100)) %>% # Set depth of Inflow samples
+         Depth_m = replace(Depth_m, Depth_m == 999, 0.1)) %>% # Set depth of Inflow samples
   
   # Add 'flag' columns for each analyte; 1 = flag (e.g., if concentration below detection)
   mutate(Flag_TP = ifelse(TP_ugL < 1, 1, 0), # Flag TP values <1 ug/L
