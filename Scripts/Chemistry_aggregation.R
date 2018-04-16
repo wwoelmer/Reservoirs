@@ -9,29 +9,67 @@ raw_chem <- dir(path = "./Data", pattern = "*_Chemistry.csv") %>%
   map_df(~ read_csv(file.path(path = "./Data", .), col_types = cols(.default = "c")))
 
 chemistry <- raw_chem %>%
-  select(-(DIC_mgL:CH4_ppm), -(`OI TOC Conc (ppm)`:`Vario TNb Mean of 3 reps`),
-         -(`Used OI DIC Conc (ppm)`:`Vario DC Mean of 3 reps`), -(`Vario DNb Mean of 3 reps`)) %>%
+  # Rename columns if needed (TargetName = OriginalName)
   rename(Depth_m = Depth, DateTime = Date, DOC_OIAnalytical_mgL = DOC_mgL) %>%
+  
+  # Parse columns to target format
   mutate(DateTime = ymd_hms(DateTime)) %>%
   group_by(Reservoir, DateTime, Notes) %>% # columns not to parse to numeric
-  mutate_if(is.character,funs(round(as.double(.), 2))) %>%  # parse all other columns to numeric
-  mutate(NO3NO2_ugL = ifelse(is.na(NO3NO2_ugL), NO3_ugL, NO3NO2_ugL),  # move NO3_ugL values to NO3NO2 column
-         SRP_ugL = ifelse(is.na(SRP_ugL), PO4_ugL, SRP_ugL), # move PO4 values to SRP column
-         TP_ugL = ifelse((Reservoir == "FCR" & Year == 2013), NA, TP_ugL),
-         DOC_OIAnalytical_mgL = ifelse((is.na(DOC_OIAnalytical_mgL) & Year <= 2016), `OI DOC Conc (ppm)`, DOC_OIAnalytical_mgL),
-         DOC_VarioDOC_mgL = ifelse(Year >= 2016, `Vario DOC Mean of 3 reps`, NA)) %>% 
-  mutate(Site = ifelse(Depth_m != 999, 50, 100)) %>% # Add site ID; 50 = deep hole; 100 = inflow
-  mutate(Depth_m = replace(Depth_m, Depth_m == 999, 100)) %>% ##!! What should Depth_m be for inflow??
-  select(Reservoir, Site, DateTime, Depth_m, TN_ugL, TP_ugL, infTPloads_g, # reorder columns by name
-         NH4_ugL, NO3NO2_ugL, SRP_ugL, DOC_OIAnalytical_mgL, DOC_VarioDOC_mgL, Notes) %>%
-  arrange(DateTime, Reservoir, Depth_m) 
+  mutate_if(is.character,funs(as.double(.))) %>%  # parse all other columns to numeric
+  
+  # Move values from duplicated column names into target column
+  mutate(NO3NO2_ugL = ifelse(is.na(NO3NO2_ugL), NO3_ugL, NO3NO2_ugL),  
+         SRP_ugL = ifelse(is.na(SRP_ugL), PO4_ugL, SRP_ugL), 
+         DOC_OIAnalytical_mgL = ifelse((is.na(DOC_OIAnalytical_mgL) & Year <= 2016), 
+                                       `OI DOC Conc (ppm)`, DOC_OIAnalytical_mgL),
+         DOC_VarioDOC_mgL = ifelse(Year >= 2016, `Vario DOC Mean of 3 reps`, NA),  
+         Site = ifelse(Depth_m != 999, 50, 100), # Add site ID; 50 = deep hole; 100 = inflow
+         Depth_m = replace(Depth_m, Depth_m == 999, 100)) %>% # Set depth of Inflow samples
+  
+  # Add 'flag' columns for each analyte; 1 = flag (e.g., if concentration below detection)
+  mutate(Flag_TP = ifelse(TP_ugL < 1, 1, 0), # Flag TP values <1 ug/L
+         Flag_TN = ifelse(TN_ugL < 1, 1, 0), 
+         Flag_NH4 = ifelse(NH4_ugL < 1, 1, 0),
+         Flag_NO3NO2 = ifelse(NO3NO2_ugL < 1, 1, 0),
+         Flag_SRP = ifelse(SRP_ugL < 1, 1, 0),
+         Flag_DOC = ifelse((DOC_OIAnalytical_mgL < 1 | DOC_VarioDOC_mgL < 1), 1, 0)) %>%
+  
+  # Round values to specified precision
+  mutate(TP_ugL = round(TP_ugL, 1), 
+         TN_ugL = round(TN_ugL, 1), 
+         NH4_ugL = round(NH4_ugL, 0),
+         NO3NO2_ugL = round(NO3NO2_ugL, 0),
+         SRP_ugL = round(SRP_ugL, 0),
+         DOC_OIAnalytical_mgL = round(DOC_OIAnalytical_mgL, 1),
+         DOC_VarioDOC_mgL = round(DOC_VarioDOC_mgL, 1)) %>%
+  
+  # Set negative concentrations to 0
+  mutate(TP_ugL = ifelse(TP_ugL < 0, 0, TP_ugL), 
+         TN_ugL = ifelse(TN_ugL < 0, 0, TN_ugL), 
+         NH4_ugL = ifelse(NH4_ugL < 0, 0, NH4_ugL),
+         NO3NO2_ugL = ifelse(NO3NO2_ugL < 0, 0, NO3NO2_ugL),
+         SRP_ugL = ifelse(SRP_ugL < 0, 0, SRP_ugL),
+         DOC_OIAnalytical_mgL = ifelse(DOC_OIAnalytical_mgL < 0, 0, DOC_OIAnalytical_mgL),
+         DOC_VarioDOC_mgL = ifelse(DOC_VarioDOC_mgL < 0, 0, DOC_VarioDOC_mgL)) %>%
+  
+  # Omit rows where all analytes NA (e.g., rows that only had infTPloads_g)
+  filter(!is.na(TN_ugL) | !is.na(TP_ugL) | !is.na(NH4_ugL) | !is.na(NO3NO2_ugL) |
+           !is.na(SRP_ugL) | !is.na(DOC_OIAnalytical_mgL) | !is.na(DOC_VarioDOC_mgL)) %>%
+  
+  # Arrange order of columns for final data table
+  select(Reservoir, Site, DateTime, Depth_m, TN_ugL, TP_ugL, # reorder columns by name
+         NH4_ugL, NO3NO2_ugL, SRP_ugL, DOC_OIAnalytical_mgL, DOC_VarioDOC_mgL, 
+         Flag_TN, Flag_TP, Flag_NH4, Flag_NO3NO2, Flag_SRP, Flag_DOC, Notes) %>%
+  arrange(Reservoir, DateTime, Depth_m) 
+  
 
-# Write to CSV (using write.csv for now; want ISO format embedded?)
+# Write to CSV
 write.csv(chemistry, './Formatted_Data/chemistry.csv', row.names=F)
 
 #### Chemistry diagnostic plots ####
 chemistry_long <- chemistry %>% 
-  select(-infTPloads_g) %>%
+  ungroup(.) %>%
+  select(-(Flag_TN:Notes)) %>%
   gather(metric, value, TN_ugL:DOC_VarioDOC_mgL) %>% 
   mutate(year = year(DateTime))
 
@@ -68,7 +106,3 @@ ggplot(subset(chemistry_long, Reservoir!='FCR' & Site=="50"), aes(x = DateTime, 
   scale_y_continuous("Concentration") +
   theme(axis.text.x = element_text(angle = 45, hjust=1)) +
   scale_fill_discrete(name="Depth (m)")
-
-##!! Check reasonable precision of nutrient concentrations for reporting; KF rounded NO3 and PO4 to 2 decimal(?)
-##!! Do we retain a "Notes" column in EDI version? If not, should hand-check these caveats before final version
-##!! Some nutrient concentrations <0 but retained... should check! 
