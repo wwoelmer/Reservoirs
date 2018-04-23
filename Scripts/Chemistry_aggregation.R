@@ -26,14 +26,6 @@ chemistry <- raw_chem %>%
          Site = ifelse(Depth_m != 999, 50, 100), # Add site ID; 50 = deep hole; 100 = inflow
          Depth_m = replace(Depth_m, Depth_m == 999, 0.1)) %>% # Set depth of Inflow samples
   
-  # Add 'flag' columns for each analyte; 1 = flag (e.g., if concentration below detection)
-  mutate(Flag_TP = ifelse(TP_ugL < 1, 1, 0), # Flag TP values <1 ug/L
-         Flag_TN = ifelse(TN_ugL < 1, 1, 0), 
-         Flag_NH4 = ifelse(NH4_ugL < 1, 1, 0),
-         Flag_NO3NO2 = ifelse(NO3NO2_ugL < 1, 1, 0),
-         Flag_SRP = ifelse(SRP_ugL < 1, 1, 0),
-         Flag_DOC = ifelse((DOC_OIAnalytical_mgL < 1 | DOC_VarioDOC_mgL < 1), 1, 0)) %>%
-  
   # Round values to specified precision
   mutate(TP_ugL = round(TP_ugL, 1), 
          TN_ugL = round(TN_ugL, 1), 
@@ -42,6 +34,20 @@ chemistry <- raw_chem %>%
          SRP_ugL = round(SRP_ugL, 0),
          DOC_OIAnalytical_mgL = round(DOC_OIAnalytical_mgL, 1),
          DOC_VarioDOC_mgL = round(DOC_VarioDOC_mgL, 1)) %>%
+  
+  # Add 'flag' columns for each analyte; 1 = flag (e.g., if concentration below detection)
+  mutate(Flag_TP = ifelse(is.na(TP_ugL), 0, 
+                          ifelse((TP_ugL < 1), 1, 0)), # Flag TP values <1 ug/L
+         Flag_TN = ifelse(is.na(TP_ugL), 0,
+                          ifelse(TN_ugL < 1, 1, 0)), 
+         Flag_NH4 = ifelse(is.na(NH4_ugL), 0, 
+                           ifelse(NH4_ugL < 1, 1, 0)),
+         Flag_NO3NO2 = ifelse(is.na(NO3NO2_ugL), 0,
+                              ifelse(NO3NO2_ugL < 1, 1, 0)),
+         Flag_SRP = ifelse(is.na(SRP_ugL), 0,
+                           ifelse(SRP_ugL < 1, 1, 0)),
+         Flag_DOC = ifelse((is.na(DOC_OIAnalytical_mgL) | is.na(DOC_VarioDOC_mgL)), 0,
+                           ifelse((DOC_OIAnalytical_mgL < 1 | DOC_VarioDOC_mgL < 1), 1, 0))) %>%
   
   # Set negative concentrations to 0
   mutate(TP_ugL = ifelse(TP_ugL < 0, 0, TP_ugL), 
