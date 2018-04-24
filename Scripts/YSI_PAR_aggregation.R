@@ -9,29 +9,49 @@ pacman::p_load(tidyverse, lubridate) ## Use pacman package to install/load other
 raw_profiles <- dir(path = "./Data", pattern = "*_Profiles.csv") %>% 
   map_df(~ read_csv(file.path(path = "./Data", .), col_types = cols(.default = "c")))
 
-names(raw_profiles) ## Print names of all the columns
-
 profiles <- raw_profiles %>%
-  ## Rename columns if needed (TargetName = OriginalName)
+  # Rename columns if needed (TargetName = OriginalName)
   rename(Depth_m = Depth, DateTime = Date, PAR_umolm2s = PAR, Temp_C = YSI_TEMP_C, 
          DO_mgL = YSI_DO_mgL, Cond_uScm = YSI_COND_uScm, DOSat = YSI_PSAT,
          ORP = YSI_ORP_mV) %>%
   filter(Depth_m != "888" & Depth_m != "777") %>%
+  
+  # Parse columns to target format
   mutate(DateTime = ymd_hms(DateTime)) %>% ## Force DateTime to be a yyyy-mm-dd hh:mm format
   group_by(Reservoir, DateTime, Notes) %>% # columns not to parse to numeric
   mutate_if(is.character,funs(round(as.double(.), 2))) %>%  # parse all other columns to numeric
-  ## Move values from duplicated column names into target column
-  mutate(Cond_uScm = ifelse(is.na(Cond_uScm), YSI_COND, Cond_uScm),  # move YSI_COND values to Cond_uScm column
-         DO_mgL = ifelse(is.na(DO_mgL), YSI_DO, DO_mgL), # move YSI_DO values to DO_mgL column
-         PAR_umolm2s = ifelse(is.na(PAR_umolm2s), YSI_PAR, PAR_umolm2s), # move YSI_PAR values to PAR_umolm2s column
-         pH = ifelse(is.na(pH), YSI_pH, pH), # move YSI_pH values to pH
-         DOSat = ifelse(is.na(DOSat), YSI_DOSAT, DOSat), # move YSI_DOSAT values to DOSat
-         Temp_C = ifelse(is.na(Temp_C), YSI_TEMP, Temp_C)) %>% # move YSI_TEMP values to Temp_C
-  mutate(Site = ifelse(Depth_m == 999, 100, 50)) %>% ## Add a Site column; 50 = deep hole/dam; 100 = inflow
- # mutate(Depth_m = replace(Depth_m, Depth_m == 999, 100)) %>% ##!! What should Depth_m be for inflow??
-  select(Reservoir, Site, DateTime, Depth_m, Temp_C, DO_mgL, DOSat, ## Select order of columns for final data table
-         Cond_uScm, PAR_umolm2s, ORP, pH, Notes) %>%
-  arrange(DateTime, Reservoir, Depth_m) ## Sort data
+  
+  # Move values from duplicated column names into target column
+  mutate(Cond_uScm = ifelse(is.na(Cond_uScm), YSI_COND, Cond_uScm),  
+         DO_mgL = ifelse(is.na(DO_mgL), YSI_DO, DO_mgL), 
+         PAR_umolm2s = ifelse(is.na(PAR_umolm2s), YSI_PAR, PAR_umolm2s), 
+         pH = ifelse(is.na(pH), YSI_pH, pH), 
+         DOSat = ifelse(is.na(DOSat), YSI_DOSAT, DOSat), 
+         Temp_C = ifelse(is.na(Temp_C), YSI_TEMP, Temp_C),
+         Site = ifelse(Depth_m == 999, 100, 50), # Add Site ID; 50 = deep hole/dam; 100 = inflow
+         Depth_m = replace(Depth_m, Depth_m == 999, 0.1)) %>% 
+  
+  # Add 'flag' columns for each variable; 1 = flag 
+  mutate(Flag_pH = ifelse(is.na(pH), 0, 
+                          ifelse((pH < 1), 1, 0)),
+         Flag_ORP = ifelse(is.na(ORP), 0, 
+                          ifelse((ORP < 1), 1, 0)),
+         Flag_PAR = ifelse(is.na(PAR_umolm2s), 0,
+                          ifelse(PAR_umolm2s < 1, 1, 0)), 
+         Flag_Temp = ifelse(is.na(Temp_C), 0, 
+                           ifelse(Temp_C < 1, 1, 0)),
+         Flag_DO = ifelse(is.na(DO_mgL), 0,
+                              ifelse(DO_mgL < 1, 1, 0)),
+         Flag_DOSat = ifelse(is.na(DOSat), 0,
+                           ifelse(DOSat < 1, 1, 0)),
+         Flag_Cond = ifelse(is.na(Cond_uScm), 0,
+                                  ifelse(Cond_uScm < 1, 1, 0))) %>%
+  
+  # Arrange order of columns for final data table
+  select(Reservoir, Site, DateTime, Depth_m, Temp_C, DO_mgL, DOSat, 
+         Cond_uScm, PAR_umolm2s, ORP, pH, Flag_Temp, Flag_DO, Flag_DOSat,
+         Flag_Cond, Flag_PAR, Flag_ORP, Flag_pH, Notes) %>%
+  arrange(DateTime, Reservoir, Depth_m) 
 
 # Write to CSV (using write.csv for now; want ISO format embedded?)
 write.csv(profiles, './Formatted_Data/YSI_PAR_profiles.csv', row.names=F)
