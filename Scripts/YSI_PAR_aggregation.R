@@ -58,6 +58,8 @@ write.csv(profiles, './Formatted_Data/YSI_PAR_profiles.csv', row.names=F)
   
 #### YSI diagnostic plots ####
 profiles_long <- profiles %>%
+  ungroup(.) %>%
+  select(-(Flag_Temp:Notes)) %>%
   gather(metric, value, Temp_C:pH) %>% 
   mutate(year = year(DateTime))
 
@@ -70,3 +72,41 @@ ggplot(subset(profiles_long, Site == 50), aes(x = year, y = value, col=Reservoir
   scale_x_continuous("Date", breaks=seq(2013,2017,1)) +
   scale_y_continuous("") +
   theme(axis.text.x = element_text(angle = 45, hjust=1), legend.position='none')
+
+# Deep hole time series for each reservoir
+# Falling Creek
+ggplot(subset(profiles_long, Reservoir=='FCR' & Site=="50"), aes(x = DateTime, y = value, col=Depth_m)) +
+  geom_point(cex=2) +
+  facet_grid(metric ~ ., scales='free') +
+  scale_x_datetime("Date", date_breaks="2 months", date_labels = "%b %Y") +
+  scale_y_continuous("Concentration") +
+  theme(axis.text.x = element_text(angle = 45, hjust=1)) +
+  scale_color_gradient("Depth (m)", high = "black", low = "deepskyblue")
+
+# Beaverdam
+ggplot(subset(profiles_long, Reservoir=='BVR' & Site=="50"), aes(x = DateTime, y = value, col=Depth_m)) +
+  geom_point(cex=2) +
+  facet_grid(metric ~ Reservoir, scales='free') +
+  scale_x_datetime("Date", date_breaks="2 months", date_labels = "%b %Y") +
+  scale_y_continuous("Concentration") +
+  theme(axis.text.x = element_text(angle = 45, hjust=1)) +
+  scale_color_gradient("Depth (m)", high = "black", low = "deepskyblue")
+
+# Gatewood
+ggplot(subset(profiles_long, Reservoir=='GWR' & Site=="50"), aes(x = DateTime, y = value, col=Depth_m)) +
+  geom_point(cex=2) +
+  facet_grid(metric ~ Reservoir, scales='free') +
+  scale_x_datetime("Date", date_breaks="2 months", date_labels = "%b %Y") +
+  scale_y_continuous("Concentration") +
+  theme(axis.text.x = element_text(angle = 45, hjust=1)) +
+  scale_color_gradient("Depth (m)", high = "black", low = "deepskyblue")
+
+# Carvins & Spring Hollow (PAR only)
+ggplot(subset(profiles_long, (Reservoir=='CCR' | Reservoir == 'SHR') & Site=="50" & metric == 'PAR_umolm2s'), 
+       aes(x = DateTime, y = value, col=Depth_m)) +
+  geom_point(cex=2) +
+  facet_grid(metric ~ Reservoir, scales='free') +
+  scale_x_datetime("Date", date_breaks="1 month", date_labels = "%b %Y") +
+  scale_y_continuous("PAR (umol/m3/s)") +
+  theme(axis.text.x = element_text(angle = 45, hjust=1)) +
+  scale_color_gradient("Depth (m)", high = "black", low = "deepskyblue")
