@@ -49,7 +49,15 @@ ggplot(secchi_long, aes(x = year, y = Secchi_m, col=Reservoir)) +
   scale_y_continuous("Secchi depth (m)", breaks=seq(0,15,3), limits=c(0,15)) +
   theme(axis.text.x = element_text(angle = 45, hjust=1), legend.position='none')
 
-# Time series for each reservoir by julian day
+# All reservoirs time series 
+ggplot(secchi_long, aes(x = DateTime, y = Secchi_m, col=Reservoir)) +
+  geom_point(size=1) +
+  facet_grid(. ~ Reservoir, scales= 'free_x') +
+  scale_x_datetime("Date", date_breaks= "6 months", date_labels = "%b %Y") +
+  scale_y_continuous("Secchi depth (m)", breaks=seq(0,15,3), limits=c(0,15)) +
+  theme(axis.text.x = element_text(angle = 45, hjust=1), legend.position='none')
+
+# Time series for each reservoir by julian day (see interannual varaibility)
 ggplot(secchi_long, aes(x = day, y = Secchi_m, col=year)) +
   geom_point(size=2) + 
   facet_grid(Reservoir ~ ., scales= 'free_y') +
