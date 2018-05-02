@@ -28,7 +28,8 @@ profiles <- raw_profiles %>%
          pH = ifelse(is.na(pH), YSI_pH, pH), 
          DOSat = ifelse(is.na(DOSat), YSI_DOSAT, DOSat), 
          Temp_C = ifelse(is.na(Temp_C), YSI_TEMP, Temp_C),
-         Site = ifelse(Depth_m == 999, 100, 50), # Add Site ID; 50 = deep hole/dam; 100 = inflow
+         Site = ifelse(!is.na(Site), Site, 
+                       ifelse(Depth_m == 999, 100, 50)), # Add Site ID; 50 = deep hole/dam; 100 = inflow
          Depth_m = replace(Depth_m, Depth_m == 999, 0.1)) %>% 
   
   # Add 'flag' columns for each variable; 1 = flag 
@@ -79,6 +80,15 @@ ggplot(subset(profiles_long, Reservoir=='FCR' & Site=="50"), aes(x = DateTime, y
   geom_point(cex=2) +
   facet_grid(metric ~ ., scales='free') +
   scale_x_datetime("Date", date_breaks="2 months", date_labels = "%b %Y") +
+  scale_y_continuous("Concentration") +
+  theme(axis.text.x = element_text(angle = 45, hjust=1)) +
+  scale_color_gradient("Depth (m)", high = "black", low = "deepskyblue")
+
+# FCR 2017 only; all sampling sitse 
+ggplot(subset(profiles_long, Reservoir=='FCR' & year =='2017'), aes(x = DateTime, y = value, col=Depth_m)) +
+  geom_point(cex=2) +
+  facet_grid(metric ~ Site, scales='free') +
+  scale_x_datetime("Date", date_breaks="2 weeks", date_labels = "%d %b %Y") +
   scale_y_continuous("Concentration") +
   theme(axis.text.x = element_text(angle = 45, hjust=1)) +
   scale_color_gradient("Depth (m)", high = "black", low = "deepskyblue")
