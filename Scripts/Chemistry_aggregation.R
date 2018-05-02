@@ -104,7 +104,7 @@ ggplot(subset(chemistry_long, Reservoir=='FCR' & Site=="50"), aes(x = DateTime, 
   theme(axis.text.x = element_text(angle = 45, hjust=1)) +
   scale_color_manual("Depth (m)", values = jet.colors)
 
-# Non-FCR reservoir deep hole data time series
+  # Non-FCR reservoir deep hole data time series
 ggplot(subset(chemistry_long, Reservoir!='FCR' & Site=="50"), aes(x = DateTime, y = value, fill=as.factor(Depth_m))) +
   geom_point(pch=21, col='black') +
   facet_grid(metric ~ Reservoir, scales='free') +
