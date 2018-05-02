@@ -22,10 +22,10 @@ secchi <- raw_secchi %>%
   # Move values from duplicated column names into target column
   mutate(Secchi_m = round(ifelse(is.na(Secchi_m), Secchi, Secchi_m),2),  
          Notes = ifelse(is.na(Notes), Comments, Notes),
-         Site = 50) %>%  # Add Site ID; 50 = deep hole/dam
+         Site = ifelse(!is.na(Site), Site, 50)) %>%  # Add Site ID; 50 = deep hole/dam
   
   # Add 'flag' columns for each variable; 1 = flag 
-  mutate(Flag_Secchi = ifelse((Secchi_m < 0.5), 1, 0)) %>%
+  mutate(Flag_Secchi = ifelse((Secchi_m < 0.1), 1, 0)) %>%
   
   # Arrange order of columns for final data table
   select(Reservoir, Site, DateTime, Secchi_m, Flag_Secchi, Notes) %>%
@@ -44,9 +44,9 @@ secchi_long <- secchi %>%
 ggplot(secchi_long, aes(x = year, y = Secchi_m, col=Reservoir)) +
   geom_point(size=1) +
   stat_summary(fun.y="mean", geom="point",pch=21,  size=3, fill='black') +
-  facet_grid(. ~ Reservoir, scales= 'free_y') +
+  facet_grid(. ~ Reservoir, scales= 'free_x') +
   scale_x_discrete("Date", breaks=seq(2013,2017,1)) +
-  scale_y_continuous("Secchi depth (m)") +
+  scale_y_continuous("Secchi depth (m)", breaks=seq(0,15,3), limits=c(0,15)) +
   theme(axis.text.x = element_text(angle = 45, hjust=1), legend.position='none')
 
 # Time series for each reservoir by julian day
