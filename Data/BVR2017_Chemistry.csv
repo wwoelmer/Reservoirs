@@ -1,4 +1,4 @@
-"Reservoir","Year","Date","Depth","TP_ugL","TN_ugL","DOC_ugL","NH4_ugL","PO4_ugL","NO3_ugL","Notes"
+"Reservoir","Year","Date","Depth","TP_ugL","TN_ugL","DOC_mgL","NH4_ugL","PO4_ugL","NO3_ugL","Notes"
 "BVR",2017,2017-03-17 12:00:00,0.1,12.3,163,2.6017962992,9.66,7.43,4.4,"NA;NA;NA;NA;NA;NA;NA"
 "BVR",2017,2017-03-17 12:00:00,3,13.3,129,3.0245,16.3,6.4,4.23,"NA;NA;NA;NA;NA;NA;NA"
 "BVR",2017,2017-03-17 12:00:00,6,10.2,125,2.49730001626667,9.09,7.23,5,"NA;NA;NA;NA;NA;NA;NA"
