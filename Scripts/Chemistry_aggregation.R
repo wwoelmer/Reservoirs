@@ -23,7 +23,7 @@ chemistry <- raw_chem %>%
          DOC_OIAnalytical_mgL = ifelse((is.na(DOC_OIAnalytical_mgL) & Year <= 2016), 
                                        `OI DOC Conc (ppm)`, DOC_OIAnalytical_mgL),
          DOC_VarioDOC_mgL = ifelse(Year >= 2016, `Vario DOC Mean of 3 reps`, NA),  
-         Site = ifelse(Depth_m != 999, 50, 100), # Add site ID; 50 = deep hole; 100 = inflow
+         Site = ifelse(Site = 20, 20, ifelse(Depth_m != 999, 50, 100)), # Add site ID; 50 = deep hole; 100 = inflow
          Depth_m = replace(Depth_m, Depth_m == 999, 0.1)) %>% # Set depth of Inflow samples
   
   # Round values to specified precision
