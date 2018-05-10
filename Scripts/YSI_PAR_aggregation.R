@@ -84,7 +84,7 @@ ggplot(subset(profiles_long, Reservoir=='FCR' & Site=="50"), aes(x = DateTime, y
   theme(axis.text.x = element_text(angle = 45, hjust=1)) +
   scale_color_gradient("Depth (m)", high = "black", low = "deepskyblue")
 
-# FCR 2017 only; all sampling sitse 
+# FCR 2017 only; all sampling sites 
 ggplot(subset(profiles_long, Reservoir=='FCR' & year =='2017'), aes(x = DateTime, y = value, col=Depth_m)) +
   geom_point(cex=2) +
   facet_grid(metric ~ Site, scales='free') +

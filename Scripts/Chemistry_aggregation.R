@@ -1,10 +1,5 @@
 # Script to pull in water chemistry data from multiple reservoirs and years ####
 
-##MEL edits 09MAY18
-#broke up the piping temporarily so I can work on one chunk at a time while incoporating 2017
-#edited Site column creation to accommodate Site 20 at FCR in 2017
-#one day for BVR that is missing a depth?? in 2014
-
 #install.packages('pacman')
 pacman::p_load(tidyverse, lubridate)
 
@@ -15,28 +10,25 @@ raw_chem <- dir(path = "./Data", pattern = "*_Chemistry.csv") %>%
 
 chemistry <- raw_chem %>%
   # Rename columns if needed (TargetName = OriginalName)
-  rename(Depth_m = Depth, DateTime = Date, DOC_OIAnalytical_mgL = DOC_mgL) %>%
+  rename(Depth_m = Depth, DateTime = Date) %>%
   
   # Parse columns to target format
-chemistry <- chemistry %>%
   mutate(DateTime = ymd_hms(DateTime)) %>%
   group_by(Reservoir, DateTime, Notes) %>% # columns not to parse to numeric
   mutate_if(is.character,funs(as.double(.))) %>%  # parse all other columns to numeric
   
   # Move values from duplicated column names into target column
-chemistry <- chemistry %>%
   mutate(NO3NO2_ugL = ifelse(is.na(NO3NO2_ugL), NO3_ugL, NO3NO2_ugL),  
          SRP_ugL = ifelse(is.na(SRP_ugL), PO4_ugL, SRP_ugL), 
-         DOC_OIAnalytical_mgL = ifelse((is.na(DOC_OIAnalytical_mgL) & Year != 2016), 
-                                       `OI DOC Conc (ppm)`, DOC_OIAnalytical_mgL),
-         DOC_VarioDOC_mgL = ifelse(Year == 2016, `Vario DOC Mean of 3 reps`, NA),  
-         Site = ifelse(is.na(Site),50,Site),
+         DOC_OIAnalytical_mgL = ifelse(Year < 2016, DOC_mgL,
+                                       ifelse(Year == 2016, `OI DOC Conc (ppm)`, NA)),
+         DOC_VarioDOC_mgL = ifelse(Year == 2016, `Vario DOC Mean of 3 reps`, 
+                                   ifelse(Year > 2016, DOC_mgL, NA)),  
          Site = ifelse(Depth_m != 999, Site, 100), # Add site ID; 50 = deep hole; 100 = inflow; 20 = upstream FCR
+         Site = ifelse(is.na(Site),50,Site),
          Depth_m = replace(Depth_m, Depth_m == 999, 0.1)) %>% # Set depth of Inflow samples
 
-  
   # Round values to specified precision
-chemistry <- chemistry %>%
   mutate(TP_ugL = round(TP_ugL, 1), 
          TN_ugL = round(TN_ugL, 1), 
          NH4_ugL = round(NH4_ugL, 0),
@@ -46,10 +38,9 @@ chemistry <- chemistry %>%
          DOC_VarioDOC_mgL = round(DOC_VarioDOC_mgL, 1)) %>%
   
   # Add 'flag' columns for each analyte; 1 = flag (e.g., if concentration below detection)
-chemistry <- chemistry %>%
   mutate(Flag_TP = ifelse(is.na(TP_ugL), 0, 
                           ifelse((TP_ugL < 1), 1, 0)), # Flag TP values <1 ug/L
-         Flag_TN = ifelse(is.na(TP_ugL), 0,
+         Flag_TN = ifelse(is.na(TN_ugL), 0,
                           ifelse(TN_ugL < 1, 1, 0)), 
          Flag_NH4 = ifelse(is.na(NH4_ugL), 0, 
                            ifelse(NH4_ugL < 1, 1, 0)),
@@ -61,7 +52,6 @@ chemistry <- chemistry %>%
                            ifelse((DOC_OIAnalytical_mgL < 1 | DOC_VarioDOC_mgL < 1), 1, 0))) %>%
   
   # Set negative concentrations to 0
-chemistry <- chemistry %>%
   mutate(TP_ugL = ifelse(TP_ugL < 0, 0, TP_ugL), 
          TN_ugL = ifelse(TN_ugL < 0, 0, TN_ugL), 
          NH4_ugL = ifelse(NH4_ugL < 0, 0, NH4_ugL),
@@ -71,12 +61,10 @@ chemistry <- chemistry %>%
          DOC_VarioDOC_mgL = ifelse(DOC_VarioDOC_mgL < 0, 0, DOC_VarioDOC_mgL)) %>%
   
   # Omit rows where all analytes NA (e.g., rows that only had infTPloads_g)
-chemistry <- chemistry %>%
   filter(!is.na(TN_ugL) | !is.na(TP_ugL) | !is.na(NH4_ugL) | !is.na(NO3NO2_ugL) |
            !is.na(SRP_ugL) | !is.na(DOC_OIAnalytical_mgL) | !is.na(DOC_VarioDOC_mgL)) %>%
   
   # Arrange order of columns for final data table
-chemistry <- chemistry %>%
   select(Reservoir, Site, DateTime, Depth_m, TN_ugL, TP_ugL, # reorder columns by name
          NH4_ugL, NO3NO2_ugL, SRP_ugL, DOC_OIAnalytical_mgL, DOC_VarioDOC_mgL, 
          Flag_TN, Flag_TP, Flag_NH4, Flag_NO3NO2, Flag_SRP, Flag_DOC, Notes) %>%
@@ -117,7 +105,7 @@ ggplot(subset(chemistry_long, Reservoir=='FCR' & Site=="50"), aes(x = DateTime, 
   theme(axis.text.x = element_text(angle = 45, hjust=1)) +
   scale_color_manual("Depth (m)", values = jet.colors)
 
-  # Non-FCR reservoir deep hole data time series
+# Non-FCR reservoir deep hole data time series
 ggplot(subset(chemistry_long, Reservoir!='FCR' & Site=="50"), aes(x = DateTime, y = value, fill=as.factor(Depth_m))) +
   geom_point(pch=21, col='black') +
   facet_grid(metric ~ Reservoir, scales='free') +
