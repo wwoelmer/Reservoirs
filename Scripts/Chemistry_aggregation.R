@@ -20,10 +20,12 @@ chemistry <- raw_chem %>%
   # Move values from duplicated column names into target column
   mutate(NO3NO2_ugL = ifelse(is.na(NO3NO2_ugL), NO3_ugL, NO3NO2_ugL),  
          SRP_ugL = ifelse(is.na(SRP_ugL), PO4_ugL, SRP_ugL), 
+         `OI DOC Conc (ppm)` = ifelse(is.na(`OI DOC Conc (ppm)`), `OI TOC Conc (ppm)`,`OI DOC Conc (ppm)`),
          DOC_OIAnalytical_mgL = ifelse(Year < 2016, DOC_mgL,
                                        ifelse(Year == 2016, `OI DOC Conc (ppm)`, NA)),
-         DOC_VarioDOC_mgL = ifelse(Year == 2016, `Vario DOC Mean of 3 reps`, 
-                                   ifelse(Year > 2016, DOC_mgL, NA)),  
+         `Vario DOC Mean of 3 reps` = ifelse(is.na(`Vario DOC Mean of 3 reps`), `Vario TOC Mean of 3 reps`,`Vario DOC Mean of 3 reps`),
+         DOC_VarioDOC_mgL = ifelse(Year == 2016, `Vario DOC Mean of 3 reps`,
+                                          ifelse(Year > 2016, DOC_mgL, NA)),  
          Site = ifelse(Depth_m != 999, Site, 100), # Add site ID; 50 = deep hole; 100 = inflow; 20 = upstream FCR
          Site = ifelse(is.na(Site),50,Site),
          Depth_m = replace(Depth_m, Depth_m == 999, 0.1)) %>% # Set depth of Inflow samples
