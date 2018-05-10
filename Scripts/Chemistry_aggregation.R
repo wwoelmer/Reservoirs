@@ -28,7 +28,8 @@ chemistry <- raw_chem %>%
                                           ifelse(Year > 2016, DOC_mgL, NA)),  
          Site = ifelse(Depth_m != 999, Site, 100), # Add site ID; 50 = deep hole; 100 = inflow; 20 = upstream FCR
          Site = ifelse(is.na(Site),50,Site),
-         Depth_m = replace(Depth_m, Depth_m == 999, 0.1)) %>% # Set depth of Inflow samples
+         Depth_m = replace(Depth_m, Depth_m == 999, 0.1), # Set depth of Inflow samples
+         Depth_m = replace(Depth_m, Depth_m == 0, 0.1)) %>% # Update 0m chem depths to 0.1m
 
   # Round values to specified precision
   mutate(TP_ugL = round(TP_ugL, 1), 
