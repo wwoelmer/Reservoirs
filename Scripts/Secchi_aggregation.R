@@ -21,7 +21,7 @@ secchi <- raw_secchi %>%
   
   # Move values from duplicated column names into target column
   mutate(Secchi_m = round(ifelse(is.na(Secchi_m), Secchi, Secchi_m),2),  
-         Notes = ifelse(is.na(Notes), Comments, Notes),
+         Notes = ifelse(is.na(notes), Comments, notes),
          Site = ifelse(!is.na(Site), Site, 50)) %>%  # Add Site ID; 50 = deep hole/dam
   
   # Add 'flag' columns for each variable; 1 = flag 
