@@ -34,9 +34,3 @@ zoop <- raw_zoop %>%
 
 # Write formatted data to csv
 write.csv(zoop, './Formatted_Data/zooplankton.csv', row.names=F)
-
-#### Zoop diagnostic plots ####
-zoop_long <- zoop %>%
-  select(-(Flag_Density:Flag_Biomass)) %>%
-  gather(metric, value, Density_IndPerL:Biomass_ugL) %>% 
-  mutate(year = as.factor(year(DateTime)), day = yday(DateTime))
