@@ -13,7 +13,7 @@ profiles <- raw_profiles %>%
   # Rename columns if needed (TargetName = OriginalName)
   rename(Depth_m = Depth, DateTime = Date, PAR_umolm2s = PAR, Temp_C = YSI_TEMP_C, 
          DO_mgL = YSI_DO_mgL, Cond_uScm = YSI_COND_uScm, DOSat = YSI_PSAT,
-         ORP = YSI_ORP_mV) %>%
+         ORP_mV = YSI_ORP_mV) %>%
   filter(Depth_m != "888" & Depth_m != "777") %>%
   
   # Parse columns to target format
@@ -35,8 +35,8 @@ profiles <- raw_profiles %>%
   # Add 'flag' columns for each variable; 1 = flag 
   mutate(Flag_pH = ifelse(is.na(pH), 0, 
                           ifelse((pH < 1), 1, 0)),
-         Flag_ORP = ifelse(is.na(ORP), 0, 
-                          ifelse((ORP < 1), 1, 0)),
+         Flag_ORP = ifelse(is.na(ORP_mV), 0, 
+                          ifelse((ORP_mV < 1), 1, 0)),
          Flag_PAR = ifelse(is.na(PAR_umolm2s), 0,
                           ifelse(PAR_umolm2s < 1, 1, 0)), 
          Flag_Temp = ifelse(is.na(Temp_C), 0, 
@@ -50,7 +50,7 @@ profiles <- raw_profiles %>%
   
   # Arrange order of columns for final data table
   select(Reservoir, Site, DateTime, Depth_m, Temp_C, DO_mgL, DOSat, 
-         Cond_uScm, PAR_umolm2s, ORP, pH, Flag_Temp, Flag_DO, Flag_DOSat,
+         Cond_uScm, PAR_umolm2s, ORP_mV, pH, Flag_Temp, Flag_DO, Flag_DOSat,
          Flag_Cond, Flag_PAR, Flag_ORP, Flag_pH, Notes) %>%
   arrange(DateTime, Reservoir, Depth_m) 
 
