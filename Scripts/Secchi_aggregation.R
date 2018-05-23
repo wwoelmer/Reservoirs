@@ -1,7 +1,7 @@
 # Script to pull in Secchi data from multiple reservoirs and years ####
  
 #install.packages('pacman') ## Run this line if you don't have "pacman" package installed
-pacman::p_load(tidyverse, lubridate) ## Use pacman package to install/load other packages
+pacman::p_load(tidyverse, lubridate, hms) ## Use pacman package to install/load other packages
 
 #### Secchi depths ####
 
@@ -14,8 +14,9 @@ secchi <- raw_secchi %>%
   rename(DateTime = Date) %>%
   
   # Parse columns to target format
-  mutate(DateTime = ymd_hms(DateTime)) %>% ## Force DateTime to be a yyyy-mm-dd hh:mm:ss format
-  
+  mutate(DateTime = ymd_hms(DateTime), ## Force DateTime to be a yyyy-mm-dd hh:mm:ss format
+         Hour = hour(DateTime)) %>% # Sample hour to set night sampling flags
+         
   # Omit rows where all Secchi values NA (e.g., rows from files with trailing ,'s)
   filter(!is.na(Secchi_m) | !is.na(Secchi)) %>%
   
@@ -25,18 +26,19 @@ secchi <- raw_secchi %>%
          Site = ifelse(!is.na(Site), Site, 50)) %>%  # Add Site ID; 50 = deep hole/dam
   
   # Add 'flag' columns for each variable; 1 = flag 
-  mutate(Flag_Secchi = ifelse((Secchi_m < 0.1), 1, 0)) %>%
+  mutate(Flag_Secchi = ifelse((Hour < 6 | Hour >= 20), 5,
+                              ifelse(Secchi_m < 1, 2, 0))) %>%
   
   # Arrange order of columns for final data table
-  select(Reservoir, Site, DateTime, Secchi_m, Flag_Secchi, Notes) %>%
+  select(Reservoir, Site, DateTime, Secchi_m, Flag_Secchi) %>%
   arrange(Reservoir, DateTime) 
 
 # Write to CSV (using write.csv for now; want ISO format embedded?)
 write.csv(secchi, './Formatted_Data/Secchi_depth.csv', row.names=F)
   
-#### YSI diagnostic plots ####
+#### Secchi diagnostic plots ####
 secchi_long <- secchi %>%
-  select(-(Flag_Secchi:Notes)) %>%
+  select(-(Flag_Secchi)) %>%
   mutate(year = as.factor(year(DateTime)), day = yday(DateTime))
 
 # Plot range of values per year for each reservoir; 
