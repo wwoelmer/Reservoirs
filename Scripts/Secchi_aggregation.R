@@ -1,7 +1,7 @@
 # Script to pull in Secchi data from multiple reservoirs and years ####
  
 #install.packages('pacman') ## Run this line if you don't have "pacman" package installed
-pacman::p_load(tidyverse, lubridate, hms) ## Use pacman package to install/load other packages
+pacman::p_load(tidyverse, lubridate) ## Use pacman package to install/load other packages
 
 #### Secchi depths ####
 

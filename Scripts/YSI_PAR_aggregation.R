@@ -17,7 +17,8 @@ profiles <- raw_profiles %>%
   filter(Depth_m != "888" & Depth_m != "777") %>%
   
   # Parse columns to target format
-  mutate(DateTime = ymd_hms(DateTime)) %>% ## Force DateTime to be a yyyy-mm-dd hh:mm format
+  mutate(DateTime = ymd_hms(DateTime), ## Force DateTime to be a yyyy-mm-dd hh:mm format
+         Hour = hour(DateTime)) %>% 
   group_by(Reservoir, DateTime, Notes) %>% # columns not to parse to numeric
   mutate_if(is.character,funs(round(as.double(.), 2))) %>%  # parse all other columns to numeric
   
@@ -32,21 +33,19 @@ profiles <- raw_profiles %>%
                        ifelse(Depth_m == 999, 100, 50)), # Add Site ID; 50 = deep hole/dam; 100 = inflow
          Depth_m = replace(Depth_m, Depth_m == 999, 0.1)) %>% 
   
-  # Add 'flag' columns for each variable; 1 = flag 
-  mutate(Flag_pH = ifelse(is.na(pH), 0, 
-                          ifelse((pH < 1), 1, 0)),
-         Flag_ORP = ifelse(is.na(ORP_mV), 0, 
-                          ifelse((ORP_mV < 1), 1, 0)),
-         Flag_PAR = ifelse(is.na(PAR_umolm2s), 0,
-                          ifelse(PAR_umolm2s < 1, 1, 0)), 
-         Flag_Temp = ifelse(is.na(Temp_C), 0, 
-                           ifelse(Temp_C < 1, 1, 0)),
-         Flag_DO = ifelse(is.na(DO_mgL), 0,
-                              ifelse(DO_mgL < 1, 1, 0)),
-         Flag_DOSat = ifelse(is.na(DOSat), 0,
-                           ifelse(DOSat < 1, 1, 0)),
-         Flag_Cond = ifelse(is.na(Cond_uScm), 0,
-                                  ifelse(Cond_uScm < 1, 1, 0))) %>%
+  # Add 'flag' columns for each variable; 1 = flag for NA value
+  mutate(Flag_pH = ifelse(is.na(pH), 1, 0),
+         Flag_ORP = ifelse(is.na(ORP_mV), 1, 
+                           ifelse(ORP_mV > 750, 2, 0)), # Flag 2 = inst. malfunction
+         Flag_PAR = ifelse(is.na(PAR_umolm2s), 1, 
+                           ifelse((Hour < 6 | Hour >= 20), 5, 0)), # Flag PAR in night sampling
+         Flag_Temp = ifelse(is.na(Temp_C), 1, 
+                            ifelse(Temp_C > 35, 2, 0)), # Flag 2 = inst. malfunction
+         Flag_DO = ifelse(is.na(DO_mgL), 1, 0),
+         Flag_DOSat = ifelse(is.na(DOSat), 1,
+                           ifelse(DOSat > 200, 2, 0)), # Flag 2 = inst. malfunction
+         Flag_Cond = ifelse(is.na(Cond_uScm), 1,
+                                  ifelse((Cond_uScm < 10 | Cond_uScm > 250), 2, 0))) %>% # Flag 2 = inst. malfunction
   
   # Arrange order of columns for final data table
   select(Reservoir, Site, DateTime, Depth_m, Temp_C, DO_mgL, DOSat, 
@@ -63,6 +62,11 @@ profiles_long <- profiles %>%
   select(-(Flag_Temp:Notes)) %>%
   gather(metric, value, Temp_C:pH) %>% 
   mutate(year = year(DateTime))
+
+# Plot ORP as a function of DO
+ggplot(subset(profiles, Reservoir == "BVR" | Reservoir=="FCR"), aes(x = DO_mgL, y = ORP_mV, col = Reservoir)) + 
+  geom_point() + 
+  facet_grid(Reservoir ~., scales= 'free_y')
 
 # Plot range of values per year for each reservoir; 
 # annual mean value indicated with large black dot
