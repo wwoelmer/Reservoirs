@@ -26,8 +26,7 @@ secchi <- raw_secchi %>%
          Site = ifelse(!is.na(Site), Site, 50)) %>%  # Add Site ID; 50 = deep hole/dam
   
   # Add 'flag' columns for each variable; 1 = flag 
-  mutate(Flag_Secchi = ifelse((Hour < 6 | Hour >= 20), 5,
-                              ifelse(Secchi_m < 1, 2, 0))) %>%
+  mutate(Flag_Secchi = ifelse((Hour < 6 | Hour >= 20), 5, 0)) %>% # Flag for night sampling
   
   # Arrange order of columns for final data table
   select(Reservoir, Site, DateTime, Secchi_m, Flag_Secchi) %>%
