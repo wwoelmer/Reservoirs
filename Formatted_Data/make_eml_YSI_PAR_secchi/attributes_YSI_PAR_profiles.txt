@@ -10,10 +10,10 @@ Cond_uScm	Conductivity	numeric	microSiemenPerCentimeter		NA	No data
 PAR_umolm2s	Photosynthetically active radiation	numeric	micromolePerMeterSquaredPerSecond		NA	No data
 ORP_mV	oxidation-reduction potential	numeric	millivolt		NA	No data
 pH	water pH	numeric	dimensionless		NA	No data
-Flag_Temp	Data flag for temperature; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,  4=Negative value set to 0	numeric	dimensionless			
-Flag_DO	Data flag for dissolved oxygen (DO) concentration; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,  4=Negative value set to 0	numeric	dimensionless			
-Flag_DOSat	Data flag for dissolved oxygen (DO) percent saturation; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,  4=Negative value set to 0	numeric	dimensionless			
-Flag_Cond	Data flag for conductivity; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,  4=Negative value set to 0	numeric	dimensionless			
-Flag_PAR	Data flag for photosynthetically active radiation (PAR); 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,  4=Negative value set to 0	numeric	dimensionless			
-Flag_ORP	Data flag for ORP; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,  4=Negative value set to 0	numeric	dimensionless			
-Flag_pH	Data flag for pH; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,  4=Negative value set to 0	numeric	dimensionless			
+Flag_Temp	Data flag for temperature; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,4=Negative value set to 0	numeric	dimensionless			
+Flag_DO	Data flag for dissolved oxygen (DO) concentration; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,4=Negative value set to 0	numeric	dimensionless			
+Flag_DOSat	Data flag for dissolved oxygen (DO) percent saturation; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,4=Negative value set to 0	numeric	dimensionless			
+Flag_Cond	Data flag for conductivity; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,4=Negative value set to 0	numeric	dimensionless			
+Flag_PAR	Data flag for photosynthetically active radiation (PAR); 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,4=Negative value set to 0	numeric	dimensionless			
+Flag_ORP	Data flag for ORP; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,4=Negative value set to 0	numeric	dimensionless			
+Flag_pH	Data flag for pH; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,4=Negative value set to 0	numeric	dimensionless			

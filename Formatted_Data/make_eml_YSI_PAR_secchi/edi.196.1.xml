@@ -816,7 +816,7 @@
         </attribute>
         <attribute>
           <attributeName>Flag_Temp</attributeName>
-          <attributeDefinition>Data flag for temperature; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,  4=Negative value set to 0</attributeDefinition>
+          <attributeDefinition>Data flag for temperature; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,4=Negative value set to 0</attributeDefinition>
           <storageType>float</storageType>
           <measurementScale>
             <ratio>
@@ -835,7 +835,7 @@
         </attribute>
         <attribute>
           <attributeName>Flag_DO</attributeName>
-          <attributeDefinition>Data flag for dissolved oxygen (DO) concentration; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,  4=Negative value set to 0</attributeDefinition>
+          <attributeDefinition>Data flag for dissolved oxygen (DO) concentration; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,4=Negative value set to 0</attributeDefinition>
           <storageType>float</storageType>
           <measurementScale>
             <ratio>
@@ -854,7 +854,7 @@
         </attribute>
         <attribute>
           <attributeName>Flag_DOSat</attributeName>
-          <attributeDefinition>Data flag for dissolved oxygen (DO) percent saturation; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,  4=Negative value set to 0</attributeDefinition>
+          <attributeDefinition>Data flag for dissolved oxygen (DO) percent saturation; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,4=Negative value set to 0</attributeDefinition>
           <storageType>float</storageType>
           <measurementScale>
             <ratio>
@@ -873,7 +873,7 @@
         </attribute>
         <attribute>
           <attributeName>Flag_Cond</attributeName>
-          <attributeDefinition>Data flag for conductivity; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,  4=Negative value set to 0</attributeDefinition>
+          <attributeDefinition>Data flag for conductivity; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,4=Negative value set to 0</attributeDefinition>
           <storageType>float</storageType>
           <measurementScale>
             <ratio>
@@ -892,7 +892,7 @@
         </attribute>
         <attribute>
           <attributeName>Flag_PAR</attributeName>
-          <attributeDefinition>Data flag for photosynthetically active radiation (PAR); 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,  4=Negative value set to 0</attributeDefinition>
+          <attributeDefinition>Data flag for photosynthetically active radiation (PAR); 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,4=Negative value set to 0</attributeDefinition>
           <storageType>float</storageType>
           <measurementScale>
             <ratio>
@@ -911,7 +911,7 @@
         </attribute>
         <attribute>
           <attributeName>Flag_ORP</attributeName>
-          <attributeDefinition>Data flag for ORP; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,  4=Negative value set to 0</attributeDefinition>
+          <attributeDefinition>Data flag for ORP; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,4=Negative value set to 0</attributeDefinition>
           <storageType>float</storageType>
           <measurementScale>
             <ratio>
@@ -930,7 +930,7 @@
         </attribute>
         <attribute>
           <attributeName>Flag_pH</attributeName>
-          <attributeDefinition>Data flag for pH; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,  4=Negative value set to 0</attributeDefinition>
+          <attributeDefinition>Data flag for pH; 0=Not suspect, 1=Sample not taken, 2=Instrument malfunction, 3=Sample below detection,4=Negative value set to 0</attributeDefinition>
           <storageType>float</storageType>
           <measurementScale>
             <ratio>
