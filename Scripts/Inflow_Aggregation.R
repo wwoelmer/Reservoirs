@@ -21,20 +21,21 @@ raw_inflow <- dir(path = "./Data", pattern = "FCR_inf_15min*") %>%
   map_df(~ read_csv(file.path(path = "./Data", .), col_types = cols(.default = "c"), skip = 37)) %>% 
 raw_inf= raw_inflow[,c(6,3,4)] #limits data to necessary columns
 
-#Data from 2013, has differing format from other data
-raw_inflow2 <- dir(path = "./Data", pattern = "FCR_inf2_15min*") %>% 
-  map_df(~ read_csv(file.path(path = "./Data", .), col_types = cols(.default = "c"), skip = 28)) %>% 
-  raw_inf2= raw_inflow2[,c(2:4)] #limits data to necessary columns
+###Inflow data must be paired with barometric data, this is an attempt to convert that.. maybe disregard
+#Data from 2013, has differing format from other data;
+#raw_inflow2 <- dir(path = "./Data", pattern = "FCR_inf2_15min*") %>% 
+#  map_df(~ read_csv(file.path(path = "./Data", .), col_types = cols(.default = "c"), skip = 28)) %>% 
+#  raw_inf2= raw_inflow2[,c(2:4)] #limits data to necessary columns
 
-pressure1 <- raw_inf %>%
+pressure <- raw_inf %>%
   # Rename columns if needed (TargetName = OriginalName)
-  rename(Pressure_unit = "Pressure(in H2O)", DateTime = "Barometric Date/Time", Temp_C = "Temperature(degC)") %>%
+  rename(Pressure_psia = "Pressure(in H2O)", DateTime = "Barometric Date/Time", Temp_C = "Temperature(degC)") %>%
   
-  pressure2 <- raw_inf2 %>%
+#  pressure2 <- raw_inf2 %>%
   # Rename columns if needed (TargetName = OriginalName)
-  rename(Pressure_unit = "Pressure(in H2O)", DateTime = "Date/Time", Temp_C = "Temperature(degC)") %>%  
+#  rename(Pressure_psia = "Pressure(in H2O)", DateTime = "Date/Time", Temp_C = "Temperature(degC)") %>%  
 
-pressure=bind_rows(pressure1, pressure2)
+#pressure=bind_rows(pressure1, pressure2)
     
 #consolidates 2 date formats into 1 format  
 ymd_hms <- ymd_hms(pressure$DateTime) 
@@ -49,7 +50,7 @@ pressure$DateTime <- ymd_hms
   
   
 inflow <- pressure
-  flow2 <- pressure$Pressure_unit
+  flow2 <- pressure$Pressure_psia
   
   ### CALCULATE THE FLOW RATES AT INFLOW ### #Taken from RPM's 'old school' script
   #################################################################################################
@@ -66,13 +67,13 @@ inflow <- pressure
 
 inflow$Reservoir <- "FCR" #creates reservoir column to match other data sets
 inflow$Site <- 100  #creates site column to match other data sets
-  FLOWS <- cbind(inflow,flow8,flow9,flow10, deparse.level = 1) #binds relevant columns, copied from RPM's code, so idk what "deparse" is
+  FLOWS <- cbind(inflow,flow10, deparse.level = 1) #binds relevant columns, copied from RPM's code, so idk what "deparse" is
   
   FLOWS <- FLOWS %>%
     # Rename columns if needed (TargetName = OriginalName)
-    rename(Flow_Ls = flow8, Flow_cmm = flow9, Flow_cms = flow10)
+    rename(Flow_cms = flow10)
   
-Inflow_Final <- FLOWS[,c(4,5,3,2,1,6:8)]
+Inflow_Final <- FLOWS[,c(4,5,1,3,2,6)]
 Inflow_Final <- Inflow_Final[order(Inflow_Final$DateTime),] #orders file by date
 
 # Write to CSV
