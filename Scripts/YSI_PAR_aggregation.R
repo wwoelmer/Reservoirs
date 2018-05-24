@@ -33,6 +33,9 @@ profiles <- raw_profiles %>%
                        ifelse(Depth_m == 999, 100, 50)), # Add Site ID; 50 = deep hole/dam; 100 = inflow
          Depth_m = replace(Depth_m, Depth_m == 999, 0.1)) %>% 
   
+  # Fix conductivity values >700 to be NA; instrument error that recorded pressure as cond
+  mutate(Cond_uScm = ifelse(Cond_uScm > 700, NA, Cond_uScm)) %>%
+  
   # Add 'flag' columns for each variable; 1 = flag for NA value
   mutate(Flag_pH = ifelse(is.na(pH), 1, 0),
          Flag_ORP = ifelse(is.na(ORP_mV), 1, 
