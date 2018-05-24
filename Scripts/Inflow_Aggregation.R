@@ -21,10 +21,21 @@ raw_inflow <- dir(path = "./Data", pattern = "FCR_inf_15min*") %>%
   map_df(~ read_csv(file.path(path = "./Data", .), col_types = cols(.default = "c"), skip = 37)) %>% 
 raw_inf= raw_inflow[,c(6,3,4)] #limits data to necessary columns
 
-pressure <- raw_inf %>%
+#Data from 2013, has differing format from other data
+raw_inflow2 <- dir(path = "./Data", pattern = "FCR_inf2_15min*") %>% 
+  map_df(~ read_csv(file.path(path = "./Data", .), col_types = cols(.default = "c"), skip = 28)) %>% 
+  raw_inf2= raw_inflow2[,c(2:4)] #limits data to necessary columns
+
+pressure1 <- raw_inf %>%
   # Rename columns if needed (TargetName = OriginalName)
   rename(Pressure_unit = "Pressure(in H2O)", DateTime = "Barometric Date/Time", Temp_C = "Temperature(degC)") %>%
+  
+  pressure2 <- raw_inf2 %>%
+  # Rename columns if needed (TargetName = OriginalName)
+  rename(Pressure_unit = "Pressure(in H2O)", DateTime = "Date/Time", Temp_C = "Temperature(degC)") %>%  
 
+pressure=bind_rows(pressure1, pressure2)
+    
 #consolidates 2 date formats into 1 format  
 ymd_hms <- ymd_hms(pressure$DateTime) 
 mdy_hm <- mdy_hm(pressure$DateTime) 
@@ -42,13 +53,13 @@ inflow <- pressure
   
   ### CALCULATE THE FLOW RATES AT INFLOW ### #Taken from RPM's 'old school' script
   #################################################################################################
-  flow3 <- (flow2 - 6.3125 + 1.2) * 0.0254                     # Height above the weir (m)
+  flow3 <- (flow2 - 6.3125 + 1.2) * 0.0254                     # Response: Height above the weir (m), rating curve equation
   flow4 <- (0.62 * (2/3) * (1.1) * 4.43 * (flow3 ^ 1.5) * 35.3147) # Flow CFS
   flow5 <- flow4 * 60                                              # Flow CFM
   flow6 <- (flow2 - 6.3125 + 1.2) / 12                         # Height above weir (ft)
   flow7 <- 3.33 * (3.60892 - (0.2 * flow6)) * flow6 ^ 1.5          # Q eqn (cfs)
-  flow8 <- flow7 * 28.317                                          #Flows in (Liters/Second)
-  flow9 <- flow8 * (1 / 16.67)                                     #Flows in (Meters Cubed/Minute)
+  flow8 <- flow7 * 28.317                                          #Flows in (Liters/Second); converting cubic ft to liters
+  flow9 <- flow8 * (1 / 16.67)                                     #Flows in (Meters Cubed/Minute); converting liters to 
   flow10 <- flow9 / 60                                             #Flows in (Meters Cubed/Second)
 #################################################################################################
 
