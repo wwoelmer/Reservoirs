@@ -80,4 +80,22 @@ define_catvars(path = "C:/Users/Mary Lofton/Documents/RProjects/Reservoirs/Forma
 
 #open the created value IN A SPREADSHEET EDITOR and add a definition for each category
 
+#Step 15: Geographic coverage
+#copy-paste the bounding_boxes.txt file that is Carey Lab specific into your working directory
 
+#Step 16: Make EML
+# View documentation for this function
+?make_eml
+
+# Run this function
+make_eml(path = "C:/Users/Mary Lofton/Documents/RProjects/Reservoirs/Formatted_Data/MakeEMLChemistry",
+         dataset.title = "Water chemistry time series for Beaverdam Reservoir, Carvins Cove Reservoir, Falling Creek Reservoir, Gatewood Reservoir, and Spring Hollow Reservoir in southwestern Virginia, USA 2013-2017",
+         data.files = c("chemistry"),
+         data.files.description = c("Reservoir water chemistry dataset."),
+         #data.files.quote.character = c("\"", "\""),
+         temporal.coverage = c("2013-04-04", "2017-12-11"),
+         geographic.description = "Southwestern Virginia, USA, North America",
+         #geographic.coordinates = c("69.0", "28.53", "28.38", "-119.95"),
+         maintenance.description = "ongoing", 
+         user.id = "carylab6",
+         package.id = "edi.199")
