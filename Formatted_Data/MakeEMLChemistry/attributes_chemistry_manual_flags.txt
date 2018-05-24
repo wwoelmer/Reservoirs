@@ -1,0 +1,17 @@
+attributeName	attributeDefinition	class	unit	dateTimeFormatString	missingValueCode	missingValueCodeExplanation
+Reservoir		character				
+Site		numeric	!Add units here!			
+DateTime		Date		!Add datetime specifier here!		
+Depth_m		numeric	!Add units here!			
+TN_ugL		numeric	!Add units here!			
+TP_ugL		numeric	!Add units here!			
+NH4_ugL		numeric	!Add units here!			
+NO3NO2_ugL		numeric	!Add units here!			
+SRP_ugL		numeric	!Add units here!			
+DOC_mgL		numeric	!Add units here!			
+Flag_TN		numeric	!Add units here!			
+Flag_TP		numeric	!Add units here!			
+Flag_NH4		numeric	!Add units here!			
+Flag_NO3NO2		numeric	!Add units here!			
+Flag_SRP		numeric	!Add units here!			
+Flag_DOC		numeric	!Add units here!			
