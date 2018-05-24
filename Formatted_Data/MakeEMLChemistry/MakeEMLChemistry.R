@@ -31,7 +31,7 @@ library(EMLassemblyline)
 # Import templates for an example dataset licensed under CC0, with 2 tables.
 import_templates(path = "C:/Users/Mary Lofton/Documents/RProjects/Reservoirs/Formatted_Data/MakeEMLChemistry",
                  license = "CCBY",
-                 data.files = c("chemistry_manual_flags"))
+                 data.files = c("chemistry"))
 
 #Step 6: Script your workflow
 #that's what this is, silly!
@@ -53,4 +53,31 @@ import_templates(path = "C:/Users/Mary Lofton/Documents/RProjects/Reservoirs/For
 
 #Step 10: Keywords
 #DO NOT EDIT KEYWORDS FILE USING A TEXT EDITOR!! USE EXCEL!!
+#see the LabKeywords.txt file for keywords that are mandatory for all Carey Lab data products
+
+#Step 11: Personnel
+#copy-paste this information in from your metadata document
+#Cayelan needs to be listed several times; she has to be listed separately for her roles as
+#PI, creator, and contact, and also separately for each separate funding source (!!)
+
+#Step 12: Attributes
+#grab attribute names and definitions from your metadata word document
+#for units....
+# View and search the standard units dictionary
+view_unit_dictionary()
+#put flag codes and site codes in the definitions cell
+#force reservoir to categorical
+
+#Step 13: Close files
+#if all your files aren't closed, sometimes functions don't work
+
+#Step 14: Categorical variables
+# View documentation for this function
+?define_catvars
+
+# Run this function for your dataset
+define_catvars(path = "C:/Users/Mary Lofton/Documents/RProjects/Reservoirs/Formatted_Data/MakeEMLChemistry")
+
+#open the created value IN A SPREADSHEET EDITOR and add a definition for each category
+
 
