@@ -40,7 +40,7 @@ profiles <- raw_profiles %>%
   mutate(Flag_pH = ifelse(is.na(pH), 1, 0),
          Flag_ORP = ifelse(is.na(ORP_mV), 1, 
                            ifelse(ORP_mV > 750, 2, 0)), # Flag 2 = inst. malfunction
-         Flag_PAR = ifelse(is.na(PAR_umolm2s), 1, 0), # Flag PAR in night sampling
+         Flag_PAR = ifelse(is.na(PAR_umolm2s), 1, 0),
          Flag_Temp = ifelse(is.na(Temp_C), 1, 
                             ifelse(Temp_C > 35, 2, 0)), # Flag 2 = inst. malfunction
          Flag_DO = ifelse(is.na(DO_mgL), 1, 0),
