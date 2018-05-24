@@ -20,17 +20,12 @@ zoop <- raw_zoop %>%
          Biomass_ugL = round(as.double(Biomass_ugL), 3)) %>%
   
   # Add columns for Flags
-  mutate(Flag_Density = ifelse(is.na(Density_IndPerL), 0,
-                               ifelse(Density_IndPerL < 0, 1, 0)),
-         Flag_Length = ifelse(is.na(MeanLength_mm), 0,
-                              ifelse(MeanLength_mm < 0, 1, 0)),
-         Flag_Weight = ifelse(is.na(MeanWeight_ug), 0, 
-                              ifelse(MeanWeight_ug < 0, 1, 0)), 
-         Flag_Biomass = ifelse(is.na(Biomass_ugL), 0,
-                               ifelse(Biomass_ugL < 0, 1, 0))) %>%
+  mutate(Flag_Length = ifelse(is.na(MeanLength_mm), 1,0),
+         Flag_Weight = ifelse(is.na(MeanWeight_ug), 1, 0), 
+         Flag_Biomass = ifelse(is.na(Biomass_ugL), 1, 0)) %>%
   
   # Arrange column order for final sheet
-  select(Reservoir:DateTime, SampleTime, StartDepth_m:Taxon, Density_IndPerL:Flag_Biomass)
+  select(Reservoir:DateTime, StartDepth_m:CollectionMethod ,Taxon, Density_IndPerL:Biomass_ugL, Flag_Length:Flag_Biomass)
 
 # Write formatted data to csv
 write.csv(zoop, './Formatted_Data/zooplankton.csv', row.names=F)
