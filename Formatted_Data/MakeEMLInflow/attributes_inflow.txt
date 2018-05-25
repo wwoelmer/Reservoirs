@@ -1,9 +1,7 @@
 attributeName	attributeDefinition	class	unit	dateTimeFormatString	missingValueCode	missingValueCodeExplanation
-Reservoir		character				
-Site		numeric	!Add units here!			
-DateTime		Date		!Add datetime specifier here!		
-Temp_C		numeric	!Add units here!			
-Pressure_unit		numeric	!Add units here!			
-Flow_Ls		numeric	!Add units here!			
-Flow_cmm		numeric	!Add units here!			
-Flow_cms		numeric	!Add units here!			
+Reservoir	"Three-letter code corresponding to sampled reservoir, FCR=Falling Creek Reservoir"	character			NA	No data
+Site	"Sampling site within each reservoir, 100=Inflow stream of Falling Creek Reservoir"	numeric	dimensionless		NA	No data
+DateTime	"Date and time of sampling. All data were collected in the eastern time zone of the U.S.A., with daylight savings time observed"	Date		YYYY-MM-DD HH:MM:SS	NA	No data
+Temp_C	Water temperature measured at the weir entering the reservoir	numeric	degrees Celsius		NA	No data
+Pressure_unit	Pressure measured by INW sensor at the weir	numeric	Pounds per square inch absolute		NA	No data
+Flow_cms	Discharge flow rate derived from the pressure measured at the weir and weir rating curve (see Gerling et al. 2014 for equations)	numeric	Cubic meters per second		NA	No data
