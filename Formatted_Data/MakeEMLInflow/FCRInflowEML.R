@@ -10,12 +10,11 @@ library(EMLassemblyline)
 # View documentation for this function
 #?import_templates
 
-<<<<<<< HEAD
 # Import templates for an example dataset licensed under CC0, with 2 tables.
 import_templates(path = "~/Reservoirs/Formatted_Data/MakeEMLInflow/",
                  license = "CCBY",
                  data.files = "inflow")
-=======
+
 # Import templates for an example dataset licensed under CCBY, with 2 tables.
 import_templates(path = "",
                  license = "CCBY",
@@ -23,7 +22,6 @@ import_templates(path = "",
 
 data<-read.csv('inflow.csv', header=TRUE)
 View(data)
-
 
 define_catvars(path = "")
 
@@ -36,5 +34,4 @@ make_eml(path = "",
          geographic.description = "Southwestern Virginia, USA, North America",
          maintenance.description = "ongoing", 
          user.id = "carylab0",
-         package.id = "edi.198.1")
->>>>>>> 4d05a77487e9bdcc28a2a1c49914900fbc72cb6d
+         package.id = "edi.200.1")
