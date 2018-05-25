@@ -98,4 +98,4 @@ make_eml(path = "C:/Users/Mary Lofton/Documents/RProjects/Reservoirs/Formatted_D
          #geographic.coordinates = c("69.0", "28.53", "28.38", "-119.95"),
          maintenance.description = "ongoing", 
          user.id = "carylab6",
-         package.id = "edi.199.1")
+         package.id = "edi.199.2")
