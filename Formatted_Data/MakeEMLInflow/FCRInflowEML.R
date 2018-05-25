@@ -5,13 +5,17 @@ pacman::p_load(devtools) #installs and loads to use install_github function
 install_github("EDIorg/EMLassemblyline")
 library(EMLassemblyline)
 
-### Step 1: set working directory ###
-setwd("~/Reservoirs/Formatted_Data/MakeEMLInflow/")
 
 ### Step 5: load templates ###
 # View documentation for this function
 #?import_templates
 
+<<<<<<< HEAD
+# Import templates for an example dataset licensed under CC0, with 2 tables.
+import_templates(path = "~/Reservoirs/Formatted_Data/MakeEMLInflow/",
+                 license = "CCBY",
+                 data.files = "inflow")
+=======
 # Import templates for an example dataset licensed under CCBY, with 2 tables.
 import_templates(path = "",
                  license = "CCBY",
@@ -33,3 +37,4 @@ make_eml(path = "",
          maintenance.description = "ongoing", 
          user.id = "carylab0",
          package.id = "edi.198.1")
+>>>>>>> 4d05a77487e9bdcc28a2a1c49914900fbc72cb6d
