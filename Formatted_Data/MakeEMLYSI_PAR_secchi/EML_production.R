@@ -15,7 +15,7 @@ install_github("EDIorg/EMLassemblyline", force=T)
 library(EMLassemblyline)
 
 # Run this function
-make_eml(path = "./Formatted_Data/make_eml_YSI_PAR_secchi",
+make_eml(path = "./Formatted_Data/MakeEMLYSI_PAR_secchi",
          dataset.title = "Secchi depth data and discrete depth profiles of photosynthetically active radiation, temperature, dissolved oxygen, and pH for Beaverdam Reservoir, Carvins Cove Reservoir, Falling Creek Reservoir, Gatewood Reservoir, and Spring Hollow Reservoir in southwestern Virginia, USA 2013-2017",
          data.files = c("Secchi_depth",
                         "YSI_PAR_profiles"),
