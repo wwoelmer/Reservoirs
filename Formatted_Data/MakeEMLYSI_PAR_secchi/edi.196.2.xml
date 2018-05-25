@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:stmml="http://www.xml-cml.org/schema/stmml-1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" packageId="edi.196.1" system="edi" xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1  http://nis.lternet.edu/schemas/EML/eml-2.1.1/eml.xsd">
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:stmml="http://www.xml-cml.org/schema/stmml-1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" packageId="edi.196.2" system="edi" xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1  http://nis.lternet.edu/schemas/EML/eml-2.1.1/eml.xsd">
   <access scope="document" order="allowFirst" authSystem="https://pasta.edirepository.org/authentication">
     <allow>
       <principal>uid=carylab5,o=LTER,dc=ecoinformatics,dc=org</principal>
@@ -165,7 +165,7 @@
         <geographicDescription>Beaverdam Reservoir is located in Vinton, Virginia, USA</geographicDescription>
         <boundingCoordinates>
           <westBoundingCoordinate>-79.824834</westBoundingCoordinate>
-          <eastBoundingCoordinate>-79.824834</eastBoundingCoordinate>
+          <eastBoundingCoordinate>-79.813848</eastBoundingCoordinate>
           <northBoundingCoordinate>37.322865</northBoundingCoordinate>
           <southBoundingCoordinate>37.311961</southBoundingCoordinate>
         </boundingCoordinates>

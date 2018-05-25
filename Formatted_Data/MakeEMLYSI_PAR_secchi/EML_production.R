@@ -25,4 +25,4 @@ make_eml(path = "./Formatted_Data/MakeEMLYSI_PAR_secchi",
          geographic.description = "Southwestern Virginia, USA, North America",
          maintenance.description = "ongoing", 
          user.id = "carylab5",
-         package.id = "edi.196.1")
+         package.id = "edi.196.2")
