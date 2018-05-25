@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:stmml="http://www.xml-cml.org/schema/stmml-1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" packageId="edi.199.1" system="edi" xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1  http://nis.lternet.edu/schemas/EML/eml-2.1.1/eml.xsd">
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:stmml="http://www.xml-cml.org/schema/stmml-1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" packageId="edi.199.2" system="edi" xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1  http://nis.lternet.edu/schemas/EML/eml-2.1.1/eml.xsd">
   <access scope="document" order="allowFirst" authSystem="https://pasta.edirepository.org/authentication">
     <allow>
       <principal>uid=carylab6,o=LTER,dc=ecoinformatics,dc=org</principal>
@@ -22,7 +22,7 @@
       <electronicMailAddress>Cayelan@vt.edu</electronicMailAddress>
       <userId directory="https://orcid.org">https://orcid.org/0000-0001-8835-4476</userId>
     </creator>
-    <associatedParty>
+    <creator>
       <individualName>
         <givenName>Mary</givenName>
         <givenName>E.</givenName>
@@ -31,9 +31,8 @@
       <organizationName>Virginia Tech</organizationName>
       <electronicMailAddress>melofton@vt.edu</electronicMailAddress>
       <userId directory="https://orcid.org">https://orcid.org/0000-0003-3270-1330</userId>
-      <role>Co-Author</role>
-    </associatedParty>
-    <associatedParty>
+    </creator>
+    <creator>
       <individualName>
         <givenName>Alexandra</givenName>
         <givenName>B.</givenName>
@@ -41,9 +40,8 @@
       </individualName>
       <organizationName>Virginia Tech</organizationName>
       <electronicMailAddress>alexg13@vt.edu</electronicMailAddress>
-      <role>Co-Author</role>
-    </associatedParty>
-    <associatedParty>
+    </creator>
+    <creator>
       <individualName>
         <givenName>Ryan</givenName>
         <givenName>P.</givenName>
@@ -52,9 +50,8 @@
       <organizationName>Virginia Tech</organizationName>
       <electronicMailAddress>ryan333@vt.edu</electronicMailAddress>
       <userId directory="https://orcid.org">https://orcid.org/0000-0001-6370-3852</userId>
-      <role>Co-Author</role>
-    </associatedParty>
-    <associatedParty>
+    </creator>
+    <creator>
       <individualName>
         <givenName>Jonathan</givenName>
         <givenName>P.</givenName>
@@ -63,9 +60,8 @@
       <organizationName>Virginia Tech</organizationName>
       <electronicMailAddress>jpdoubek@vt.edu</electronicMailAddress>
       <userId directory="https://orcid.org">https://orcid.org/0000-0003-2651-4715</userId>
-      <role>Co-Author</role>
-    </associatedParty>
-    <associatedParty>
+    </creator>
+    <creator>
       <individualName>
         <givenName>Barbara</givenName>
         <givenName>R.</givenName>
@@ -73,9 +69,8 @@
       </individualName>
       <organizationName>Virginia Tech</organizationName>
       <electronicMailAddress>bniederl@vt.edu</electronicMailAddress>
-      <role>Co-Author</role>
-    </associatedParty>
-    <associatedParty>
+    </creator>
+    <creator>
       <individualName>
         <givenName>Kaitlin</givenName>
         <givenName>J.</givenName>
@@ -84,9 +79,8 @@
       <organizationName>Virginia Tech</organizationName>
       <electronicMailAddress>farrellk@vt.edu</electronicMailAddress>
       <userId directory="https://orcid.org">https://orcid.org/0000-0002-4709-7749</userId>
-      <role>Co-Author</role>
-    </associatedParty>
-    <pubDate>2018-05-24</pubDate>
+    </creator>
+    <pubDate>2018-05-25</pubDate>
     <abstract>
       <para>
   Depth profiles of dissolved organic carbon and total and dissolved
@@ -480,7 +474,7 @@
         <dataFormat>
           <textFormat>
             <numHeaderLines>1</numHeaderLines>
-            <recordDelimiter>\r\n</recordDelimiter>
+            <recordDelimiter>\n\r</recordDelimiter>
             <attributeOrientation>column</attributeOrientation>
             <simpleDelimited>
               <fieldDelimiter>,</fieldDelimiter>
