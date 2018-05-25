@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:stmml="http://www.xml-cml.org/schema/stmml-1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" packageId="edi.198.1" system="edi" xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1  http://nis.lternet.edu/schemas/EML/eml-2.1.1/eml.xsd">
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:stmml="http://www.xml-cml.org/schema/stmml-1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" packageId="edi.198.2" system="edi" xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1  http://nis.lternet.edu/schemas/EML/eml-2.1.1/eml.xsd">
   <access scope="document" order="allowFirst" authSystem="https://pasta.edirepository.org/authentication">
     <allow>
       <principal>uid=carylab0,o=LTER,dc=ecoinformatics,dc=org</principal>
@@ -22,7 +22,7 @@
       <electronicMailAddress>cayelan@vt.edu</electronicMailAddress>
       <userId directory="https://orcid.org">https://orcid.org/0000-0001-8835-4476</userId>
     </creator>
-    <associatedParty>
+    <creator>
       <individualName>
         <givenName>Jonathan</givenName>
         <givenName>P.</givenName>
@@ -31,9 +31,8 @@
       <organizationName>Virginia Tech</organizationName>
       <electronicMailAddress>jpdoubek@vt.edu</electronicMailAddress>
       <userId directory="https://orcid.org">https://orcid.org/0000-0003-2651-4715</userId>
-      <role>Co-Author</role>
-    </associatedParty>
-    <associatedParty>
+    </creator>
+    <creator>
       <individualName>
         <givenName>Kylie</givenName>
         <givenName>L.</givenName>
@@ -41,8 +40,7 @@
       </individualName>
       <organizationName>Virginia Tech</organizationName>
       <electronicMailAddress>klc24@vt.edu</electronicMailAddress>
-      <role>Co-Author</role>
-    </associatedParty>
+    </creator>
     <pubDate>2018-05-24</pubDate>
     <abstract>
       <para>
@@ -342,7 +340,7 @@
         <dataFormat>
           <textFormat>
             <numHeaderLines>1</numHeaderLines>
-            <recordDelimiter>\n\r</recordDelimiter>
+            <recordDelimiter>\n</recordDelimiter>
             <attributeOrientation>column</attributeOrientation>
             <simpleDelimited>
               <fieldDelimiter>,</fieldDelimiter>
