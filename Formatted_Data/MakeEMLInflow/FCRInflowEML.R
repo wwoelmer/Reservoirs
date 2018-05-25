@@ -25,7 +25,7 @@ View(data)
 
 define_catvars(path = "")
 
-make_eml(path = "",
+make_eml(path = ".",
          dataset.title = "Discharge time series for the primary inflow tributary entering Falling Creek Reservoir, Vinton, Virginia, USA 2013-2017",
          data.files = c("inflow"),
          data.files.description = c("FCR inflow dataset"),
