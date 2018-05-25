@@ -5,11 +5,6 @@
 #1. Fix dates, aggregate all data
 #2. Plot to check for outliers
 #3. Identify missing data; end of 2017, before 2014
-#metadata tasks:
-#4. Figure out what the units are..
-#5. Identify start and end times
-#6. Should the raw data be included? as in inflow as pressure? Should we include stream dimensions/equations separately?
-#7. Should reservoir column/site number still be in it, even though it is not relevant in this set?
 
 #install.packages('pacman') #installs pacman package, making it easier to load in packages
 pacman::p_load(tidyverse, lubridate, magrittr, ggplot2) #installs and loads in necessary packages for script
@@ -17,32 +12,20 @@ setwd("~/Reservoirs") #just in case your working directory is wonky
 
 ##Data from pressure transducer
 # Load in files with names starting with FCR_inf_15min, should only be .csv files
-raw_inflow <- dir(path = "./Data", pattern = "FCR_inf_15min*") %>% 
+raw_inflow <- dir(path = "./Data", pattern = "*FCR_inf_15min.csv") %>% 
   map_df(~ read_csv(file.path(path = "./Data", .), col_types = cols(.default = "c"), skip = 37)) %>% 
 raw_inf= raw_inflow[,c(6,3,4)] #limits data to necessary columns
 
 ###Inflow data must be paired with barometric data, this is an attempt to convert that.. maybe disregard
-#Data from 2013, has differing format from other data;
-#raw_inflow2 <- dir(path = "./Data", pattern = "FCR_inf2_15min*") %>% 
-#  map_df(~ read_csv(file.path(path = "./Data", .), col_types = cols(.default = "c"), skip = 28)) %>% 
-#  raw_inf2= raw_inflow2[,c(2:4)] #limits data to necessary columns
 
 pressure <- raw_inf %>%
   # Rename columns if needed (TargetName = OriginalName)
   rename(Pressure_psia = "Pressure(in H2O)", DateTime = "Barometric Date/Time", Temp_C = "Temperature(degC)") %>%
-  
-#  pressure2 <- raw_inf2 %>%
-  # Rename columns if needed (TargetName = OriginalName)
-#  rename(Pressure_psia = "Pressure(in H2O)", DateTime = "Date/Time", Temp_C = "Temperature(degC)") %>%  
 
-#pressure=bind_rows(pressure1, pressure2)
-    
-#consolidates 2 date formats into 1 format  
-ymd_hms <- ymd_hms(pressure$DateTime) 
-mdy_hm <- mdy_hm(pressure$DateTime) 
-ymd_hms[is.na(ymd_hms)] <- mdy_hm[is.na(ymd_hms)] # some dates are ambiguous, here we give 
-pressure$DateTime <- ymd_hms  
-  
+pressure=distinct(pressure) #removes duplicates
+
+#pressure$date <- as_datetime(pressure$DateTime)
+
    # Parse columns to target format
   pressure <- pressure %>%
   mutate(DateTime = ymd_hms(DateTime)) %>%
@@ -82,15 +65,17 @@ write.csv(Inflow_Final, './Formatted_Data/inflow.csv', row.names=F) #this would 
 #### MISCELLANEOUS TEST CODE #####
 ###Files that are broken
 #101416
+library(lubridate)
 
 ## Identifies Missing dates
-testtime=Inflow_Final[,c(3,4)] #pulls out datetime and temp, bc I hate dealing with vectors rn sry
+testtime=Test_pressure[,c(2,3)] #pulls out datetime and temp, bc I hate dealing with vectors rn sry
 
 testtime2=testtime
-testtime2$Date <- as.Date(testtime2$DateTime) #changes DateTime to Date only
-
+testtime2$Date=testtime2$BDateTime
+testtime2$Date <- as_date(testtime2$BDateTime) #changes DateTime to Date only
+testtime2=testtime2[order(testtime2$BDateTime),]
 #creates data frame of start and end of missing data
-Inflow_stopdates=data_frame(start = testtime2$Date[ diff(testtime2$Date)>1],
+Test_stopdates=data_frame(start = testtime2$Date[ diff(testtime2$Date)>1],
                             end = testtime2$Date[-1] [ diff(testtime2$Date)>1]) 
 #note: only checks within parameters of existing data, so if your missing head and tail data, you are out of luck
 
@@ -114,3 +99,6 @@ Date_15min=unique(testtime2$Date)
 Date_daily[!Date_daily %in% Date_15min]
 
 daily_inf <- daily_inf[order(daily_inf$Date),] 
+
+#Time check
+raw_inflow$`Date/Time`==as_date()
