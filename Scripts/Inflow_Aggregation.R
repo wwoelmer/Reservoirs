@@ -8,6 +8,7 @@
 #install.packages('pacman') #installs pacman package, making it easier to load in packages
 pacman::p_load(tidyverse, lubridate, magrittr, ggplot2) #installs and loads in necessary packages for script
 setwd("~/Reservoirs") #just in case your working directory is wonky
+  #MEL: can you do this in RProjects? mine won't let me.....
 
 ##Data from pressure transducer
 # Load in files with names starting with FCR_inf_15min, should only be .csv files
@@ -55,7 +56,8 @@ inflow$Site <- 100  #creates site column to match other data sets
   
 Inflow_Final <- FLOWS[,c(4,5,1,3,2,6)] #orders columns
 Inflow_Final <- Inflow_Final[order(Inflow_Final$DateTime),] #orders file by date
-Inflow_Final <- Inflow_Final[-c(1,which(Inflow_Final$DateTime>"2017-12-31 23:45:00")),] #limits data to before 2017 and takes out first row erroneous value
+#Inflow_Final <- Inflow_Final[-c(1,which(Inflow_Final$DateTime>"2017-12-31 23:45:00")),] #limits data to before 2017 and takes out first row erroneous value
+Inflow_Final <- Inflow_Final[-which(Inflow_Final$DateTime>"2017-12-31 23:45:00"),]
 
 # Write to CSV
 write.csv(Inflow_Final, './Formatted_Data/MakeEMLInflow/inflow.csv', row.names=F) #this would not push to github?? did manual upload
