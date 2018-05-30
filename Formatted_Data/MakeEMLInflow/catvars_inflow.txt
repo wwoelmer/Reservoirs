@@ -1,2 +1,0 @@
-attributeName	code	definition
-Reservoir	FCR	Falling Creek Reservoir
