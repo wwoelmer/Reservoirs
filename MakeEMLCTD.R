@@ -15,9 +15,8 @@ import_templates(path = "C:/Users/Owner/Desktop/EDI_CTD_upload",
 define_catvars(path = "C:/Users/Owner/Desktop/EDI_CTD_upload")
 
 # Make the EML for EDI ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-path = "C:/Users/Owner/Desktop/EDI_CTD_upload"
 
-make_eml(path = "C:\\Users\\Colin\\Documents\\EDI\\data_sets\\Reservoirs\\Data\\DataAlreadyUploadedToEDI\\EDIProductionFiles\\MakeEMLCTD",
+make_eml(path = "C:/Users/Owner/Desktop/EDI_CTD_upload",
          dataset.title = "Time series of high-frequency profiles of depth, temperature, dissolved oxygen, conductivity, specific conductivity, chlorophyll a, turbidity, pH, and oxidation-reduction potential for Beaverdam Reservoir, Carvins Cove Reservoir, Falling Creek Reservoir, Gatewood Reservoir, and Spring Hollow Reservoir in Southwestern Virginia, USA 2013-2017",
          data.files = "CTD_Meta_13_17.csv",
          data.files.description = "Reservoir CTD dataset",

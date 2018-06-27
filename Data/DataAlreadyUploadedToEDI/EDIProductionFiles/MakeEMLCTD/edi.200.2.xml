@@ -78,7 +78,7 @@
       <organizationName>Virginia Tech</organizationName>
       <electronicMailAddress>kdhamre@vt.edu</electronicMailAddress>
     </creator>
-    <pubDate>2018-05-25</pubDate>
+    <pubDate>2018-06-27</pubDate>
     <abstract>
       <para>
   Depth profiles of depth, temperature, dissolved oxygen, conductivity,
@@ -378,8 +378,8 @@
       <entityDescription>Reservoir CTD dataset</entityDescription>
       <physical>
         <objectName>CTD_Meta_13_17.csv</objectName>
-        <size unit="byte">40447846</size>
-        <authentication method="MD5">7a30b296cd5745378083738e9cfb9783</authentication>
+        <size unit="byte">41321158</size>
+        <authentication method="MD5">a26fcb59cf6ee15521dfe1cb6b748bf4</authentication>
         <dataFormat>
           <textFormat>
             <numHeaderLines>1</numHeaderLines>
@@ -651,7 +651,7 @@
               <numericDomain>
                 <numberType>real</numberType>
                 <bounds>
-                  <minimum exclusive="false">-0.46</minimum>
+                  <minimum exclusive="false">-40.69</minimum>
                   <maximum exclusive="false">390.39</maximum>
                 </bounds>
               </numericDomain>
@@ -663,7 +663,7 @@
           </missingValueCode>
         </attribute>
       </attributeList>
-      <numberOfRecords>488307</numberOfRecords>
+      <numberOfRecords>498954</numberOfRecords>
     </dataTable>
   </dataset>
   <additionalMetadata>
