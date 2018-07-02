@@ -78,7 +78,7 @@
       <organizationName>Virginia Tech</organizationName>
       <electronicMailAddress>kdhamre@vt.edu</electronicMailAddress>
     </creator>
-    <pubDate>2018-06-27</pubDate>
+    <pubDate>2018-07-02</pubDate>
     <abstract>
       <para>
   Depth profiles of depth, temperature, dissolved oxygen, conductivity,
@@ -383,7 +383,7 @@
         <dataFormat>
           <textFormat>
             <numHeaderLines>1</numHeaderLines>
-            <recordDelimiter>\r\n</recordDelimiter>
+            <recordDelimiter>\r</recordDelimiter>
             <attributeOrientation>column</attributeOrientation>
             <simpleDelimited>
               <fieldDelimiter>,</fieldDelimiter>
