@@ -11,7 +11,7 @@ library(EMLassemblyline)
 # Import Templates ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 import_templates(path = "/Users/cayelan/Dropbox/ComputerFiles/Virginia_Tech/Falling Creek/DataForWebsite/Github/ReservoirData/Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLCTD", 
                  license = "CCBY", 
-                 data.files = c("CTD_Meta_13_17"))
+                 data.files = c("CTD_Meta_13_17.csv"))
 
 # Define Categorical Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 define_catvars(path = "/Users/cayelan/Dropbox/ComputerFiles/Virginia_Tech/Falling Creek/DataForWebsite/Github/ReservoirData/Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLCTD")
