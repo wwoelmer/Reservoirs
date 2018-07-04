@@ -12,30 +12,114 @@ setwd("~/Reservoirs") #just in case your working directory is wonky
 
 ##Data from pressure transducer
 # Load in files with names starting with FCR_inf_15min, should only be .csv files
-raw_inflow <- dir(path = "./Data", pattern = "*FCR_inf_15min.csv") %>% 
-  map_df(~ read_csv(file.path(path = "./Data", .), col_types = cols(.default = "c"), skip = 37))
-raw_inf= raw_inflow[,c(6,3,4)] #limits data to necessary columns
+inflow_pressure <- dir(path = "./Data/DataNotYetUploadedToEDI/Raw_inflow/Inflow_CSV", pattern = "FCR_15min_Inf*") %>% 
+  map_df(~ read_csv(file.path(path = "./Data/DataNotYetUploadedToEDI/Raw_inflow/Inflow_CSV", .), col_types = cols(.default = "c"), skip = 28))
+inflow_pressure = inflow_pressure[,-1] #limits data to necessary columns
 
-###Inflow data must be paired with barometric data, this is an attempt to convert that.. maybe disregard
+##A wee bit o' data wrangling to get column names and formats in good shape
+inflow_pressure <- inflow_pressure %>%
+  rename(Date = `Date/Time`) %>%
+  mutate(DateTime = parse_date_time(Date, 'dmy HMS',tz = "EST")) %>%
+  select(-Date) %>%
+  rename(Pressure_psi = `Pressure(psi)`,
+         Temp_C = `Temperature(degC)`) %>%
+  mutate(Pressure_psi = as.double(Pressure_psi),
+         Temp_C = as.double(Temp_C))
 
-pressure <- raw_inf %>%
-  # Rename columns if needed (TargetName = OriginalName)
-  rename(Pressure_psia = "Pressure(in H2O)", DateTime = "Barometric Date/Time", Temp_C = "Temperature(degC)")
+##Preliminary visualization of raw pressure data from inflow transducer
+plot_inflow <- inflow_pressure %>%
+  mutate(Date = date(DateTime))
 
-pressure=distinct(pressure) #removes duplicates
+daily_flow <- group_by(plot_inflow, Date) %>% summarize(daily_pressure_avg = mean(Pressure_psi)) %>% mutate(Year = as.factor(year(Date)))
 
-   # Parse columns to target format
-  pressure <- pressure %>%
-  mutate(DateTime = ymd_hms(DateTime)) %>%
-  mutate_if(is.character,funs(as.double(.)))   # parse all other columns to numeric
-  
-  
-inflow <- pressure
-  flow2 <- pressure$Pressure_psia #creates vector to fit in with 'old school' script
+rawplot = ggplot(data = daily_flow, aes(x = Date, y = daily_pressure_avg))+
+  geom_point()+
+  ylab("Daily avg. inflow pressure (psi)")+
+  theme_bw()
+rawplot
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/raw_inflow_pressure.png", rawplot, device = "png")
+
+##based on this anything below 13.95 in 2017 for daily average looks like an outlier to me (when weir was leaking)
+daily_flow[which(daily_flow$daily_pressure_avg <= 13.95),]
+##10-24 to 10-30 but I thought it was down for longer than that?? may need to re-evaluate
+
+pressure_hist = ggplot(data = daily_flow, aes(x = daily_pressure_avg, group = Year, fill = Year))+
+  geom_density(alpha=0.5)+
+  xlab("Daily avg. inflow pressure (psi)")+
+  theme_bw()
+pressure_hist
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/raw_inflow_pressure_histogram.png", pressure_hist, device = "png")
+
+
+pressure_boxplot = ggplot(data = daily_flow, aes(x = Year, y = daily_pressure_avg, group = Year, fill = Year))+
+  geom_boxplot()+
+  #geom_jitter(alpha = 0.1)+
+  ylab("Daily avg. inflow pressure (psi)")+
+  theme_bw()
+pressure_boxplot
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/raw_inflow_pressure_boxplot.png", pressure_boxplot, device = "png")
+
+
+##Read in catwalk pressure data
+pressure <- read_csv("./Data/DataNotYetUploadedToEDI/FCR_DOsonde_2012to2017.csv")
+
+##Data wrangling to get columns in correct format
+pressure = pressure %>%
+  select(Date, `Barometric Pressure Pressure (PSI)`) %>%
+  mutate(DateTime = parse_date_time(Date, 'ymd HMS',tz = "EST")) %>%
+  rename(Baro_pressure_psi = `Barometric Pressure Pressure (PSI)`) %>%
+  select(-Date) %>%
+  mutate(Baro_pressure_psi = as.double(Baro_pressure_psi))
+
+##Combine inflow and catwalk barometric pressure
+diff = left_join(inflow_pressure, pressure, by = "DateTime") %>%
+  filter(!is.na(Baro_pressure_psi)) %>%
+  mutate(Pressure_psia = Pressure_psi - Baro_pressure_psi)
+
+plot_both <- diff %>%
+  mutate(Date = date(DateTime)) 
+
+daily_pressure <- group_by(plot_both, Date) %>% 
+  summarize(daily_pressure_avg = mean(Pressure_psi),
+            daily_baro_pressure_avg = mean(Baro_pressure_psi),
+            daily_psia = mean(Pressure_psia)) %>%
+  mutate(Year = as.factor(year(Date))) %>%
+  gather('daily_pressure_avg','daily_baro_pressure_avg', 'daily_psia',
+         key = 'pressure_type',value = 'psi') 
+
+daily_pressure <- daily_pressure %>%
+  mutate(pressure_type = ifelse(pressure_type == "daily_pressure_avg","inflow",ifelse(pressure_type == "daily_baro_pressure_avg","barometric","corrected")))
+
+both_pressures = ggplot(data = daily_pressure, aes(x = Date, y = psi, group = pressure_type, colour = pressure_type))+
+  geom_point()+
+  theme_bw()
+both_pressures
+
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/all_pressure_types.png", both_pressures, device = "png")
+
+
+# ###Inflow data must be paired with barometric data, this is an attempt to convert that.. maybe disregard
+# 
+# pressure <- raw_inf %>%
+#   # Rename columns if needed (TargetName = OriginalName)
+#   rename(Pressure_psia = "Pressure(in H2O)", DateTime = "Barometric Date/Time", Temp_C = "Temperature(degC)")
+# 
+# pressure=distinct(pressure) #removes duplicates
+# 
+#    # Parse columns to target format
+#   pressure <- pressure %>%
+#   mutate(DateTime = ymd_hms(DateTime)) %>%
+#   mutate_if(is.character,funs(as.double(.)))   # parse all other columns to numeric
+#   
+#   
+# inflow <- pressure
+
+#create vector of corrected pressure to match nomenclature from RPM's script
+flow2 <- diff$Pressure_psia 
   
   ### CALCULATE THE FLOW RATES AT INFLOW ### #Taken from RPM's 'old school' script, verified 05-23-18
   #################################################################################################
-  flow3 <- (flow2 - 6.3125 + 1.2) * 0.0254                     # Response: Height above the weir (m), rating curve equation
+  flow3 <- (flow2 - 6.3125 + 1.2) * 0.0254  # Response: Height above the weir (m), rating curve equation
   flow4 <- (0.62 * (2/3) * (1.1) * 4.43 * (flow3 ^ 1.5) * 35.3147) # Flow CFS
   flow5 <- flow4 * 60                                              # Flow CFM
   flow6 <- (flow2 - 6.3125 + 1.2) / 12                         # Height above weir (ft)
@@ -46,13 +130,17 @@ inflow <- pressure
 #################################################################################################
 
 
-inflow$Reservoir <- "FCR" #creates reservoir column to match other data sets
-inflow$Site <- 100  #creates site column to match other data sets
-  FLOWS <- cbind(inflow,flow10, deparse.level = 1) #binds relevant columns, copied from RPM's code, so idk what "deparse" is
-  
-  FLOWS <- FLOWS %>%
-    # Rename columns if needed (TargetName = OriginalName)
-    rename(Flow_cms = flow10)
+diff$Reservoir <- "FCR" #creates reservoir column to match other data sets
+diff$Site <- 100  #creates site column to match other data sets
+diff$Flow_cms <- flow10
+
+##visualization of inflow
+inflow = ggplot(diff, aes(x = DateTime, y = Flow_cms))
+
+  # FLOWS <- bind_cols(diff,flow10) #binds relevant columns
+  # FLOWS <- FLOWS %>%
+  #   # Rename columns if needed (TargetName = OriginalName)
+  #   rename(Flow_cms = flow10)
   
 Inflow_Final <- FLOWS[,c(4,5,1,3,2,6)] #orders columns
 Inflow_Final <- Inflow_Final[order(Inflow_Final$DateTime),] #orders file by date
