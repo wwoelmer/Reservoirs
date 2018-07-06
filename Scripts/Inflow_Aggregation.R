@@ -84,9 +84,7 @@ pressure_a4d <- pressure_a4d %>%
 baro_pressure <- bind_rows(pressure, pressure_a4d)
 baro_pressure = baro_pressure %>%
   filter(!is.na(Baro_pressure_psi)) %>%
-baro_pressure = baro_pressure %>%
   arrange(DateTime) %>%
-baro_pressure = baro_pressure %>%
   mutate(DateTime = parse_date_time(DateTime, 'ymd HMS',tz = "EST"))
 
 baro_pressure <- distinct(baro_pressure)
@@ -126,23 +124,28 @@ ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/raw_catwalk_pressur
 daily_catwalk[which(daily_catwalk$daily_pressure_avg <= 13.5 | daily_catwalk$daily_pressure_avg >= 14.2),]
 ##03-22 to 04-18 looks wonky
 
-##Combine inflow and catwalk barometric pressure
+##ARGH!! DATETIMES ARE NOT PLAYING NICELY!! cannot figure it out so just wrote to .csv and read in again
 inflow_pressure$DateTime <- as.POSIXct(inflow_pressure$DateTime, format = "%Y-%m-%d %I:%M:%S %p")
 baro_pressure$DateTime <- as.POSIXct(baro_pressure$DateTime, format = "%Y-%m-%d %I:%M:%S %p")
 
+write.csv(inflow_pressure, "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow.csv")
+write.csv(baro_pressure, "./Data/DataNotYetUploadedToEDI/Raw_inflow/baro.csv")
 
-baro <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/test_baro.csv")
-inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/test_inflow.csv")
+##OK - round 2. let's see how the datetimes play together
+baro <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/baro.csv")
+inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow.csv")
 
 #correct datetime wonkiness from 2013-09-04 10:30 AM to 2014-02-05 11:00 AM
 inflow$DateTime[24304:39090] = inflow$DateTime[24304:39090] - (6*60+43)
 
+#merge inflow and barometric pressures to do differencing
 diff = left_join(baro, inflow, by = "DateTime") %>%
-  #mutate(DateTime = ifelse(second(DateTime) = 0, DateTime, ))
   mutate(Pressure_psia = Pressure_psi - Baro_pressure_psi) %>%
   select(-c(1,4))
 diff <- distinct(diff)
-write.csv(diff, ("./Data/DataNotYetUploadedToEDI/Raw_inflow/psia_working.csv"))
+
+#writing to csv just so I can read it back in if needed
+#write.csv(diff, ("./Data/DataNotYetUploadedToEDI/Raw_inflow/psia_working.csv"))
 
 plot_both <- diff %>%
   mutate(Date = date(DateTime)) 
@@ -165,65 +168,53 @@ both_pressures
 
 ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/all_pressure_types.png", both_pressures, device = "png")
 
-##Test to develop regression between nonsense units and psi
-nonsense <- read_csv("./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow.csv")
-
-test <- left_join(nonsense, diff, by = "DateTime") %>%
-  filter(!is.na(Pressure_psia.y))
-
-corr_units = ggplot(data = test, aes(x = Pressure_psia.x, y = Pressure_psia.y))+
-  geom_point()+
-  geom_smooth(method=lm)+
-  geom_abline(slope = 1, intercept = 0)+
-  stat_smooth_func(geom="text",method="lm",hjust=0,parse=TRUE)+
-  theme_bw()
-corr_units
-  
-ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/correlation_nonsense_units_w_psi.png", corr_units, device = "png")
-#Yeah....this is not a good idea
-
-# ###Inflow data must be paired with barometric data, this is an attempt to convert that.. maybe disregard
+# ##Test to develop regression between nonsense units and psi
+# nonsense <- read_csv("./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow.csv")
 # 
-# pressure <- raw_inf %>%
-#   # Rename columns if needed (TargetName = OriginalName)
-#   rename(Pressure_psia = "Pressure(in H2O)", DateTime = "Barometric Date/Time", Temp_C = "Temperature(degC)")
+# test <- left_join(nonsense, diff, by = "DateTime") %>%
+#   filter(!is.na(Pressure_psia.y))
 # 
-# pressure=distinct(pressure) #removes duplicates
-# 
-#    # Parse columns to target format
-#   pressure <- pressure %>%
-#   mutate(DateTime = ymd_hms(DateTime)) %>%
-#   mutate_if(is.character,funs(as.double(.)))   # parse all other columns to numeric
+# corr_units = ggplot(data = test, aes(x = Pressure_psia.x, y = Pressure_psia.y))+
+#   geom_point()+
+#   geom_smooth(method=lm)+
+#   geom_abline(slope = 1, intercept = 0)+
+#   stat_smooth_func(geom="text",method="lm",hjust=0,parse=TRUE)+
+#   theme_bw()
+# corr_units
 #   
-#   
-# inflow <- pressure
+# ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/correlation_nonsense_units_w_psi.png", corr_units, device = "png")
+# #Yeah....this is not a good idea
+
 
 #create vector of corrected pressure to match nomenclature from RPM's script
+diff <- diff %>%
+  filter(!is.na(Pressure_psia))
 flow2 <- diff$Pressure_psia 
   
-  ### CALCULATE THE FLOW RATES AT INFLOW ### #Taken from RPM's 'old school' script, verified 05-23-18
-  #################################################################################################
-  flow3 <- (flow2 - 6.3125 + 1.2) * 0.0254  # Response: Height above the weir (m), rating curve equation
-  flow4 <- (0.62 * (2/3) * (1.1) * 4.43 * (flow3 ^ 1.5) * 35.3147) # Flow CFS
-  flow5 <- flow4 * 60                                              # Flow CFM
-  flow6 <- (flow2 - 6.3125 + 1.2) / 12                         # Height above weir (ft)
-  flow7 <- 3.33 * (3.60892 - (0.2 * flow6)) * flow6 ^ 1.5          # Q eqn (cfs)
-  flow8 <- flow7 * 28.317                                          #Flows in (Liters/Second); converting cubic ft to liters
-  flow9 <- flow8 * (1 / 16.67)                                     #Flows in (Meters Cubed/Minute); converting liters to 
-  flow10 <- flow9 / 60                                             #Flows in (Meters Cubed/Second)
-#################################################################################################
+#   ### CALCULATE THE FLOW RATES AT INFLOW ### #Taken from RPM's 'old school' script, verified 05-23-18
+#   #################################################################################################
+#   flow3 <- (flow2 - 6.3125 + 1.2) * 0.0254  # Response: Height above the weir (m), rating curve equation
+#   flow4 <- (0.62 * (2/3) * (1.1) * 4.43 * (flow3 ^ 1.5) * 35.3147) # Flow CFS
+#   flow5 <- flow4 * 60                                              # Flow CFM
+#   flow6 <- (flow2 - 6.3125 + 1.2) / 12                         # Height above weir (ft)
+#   flow7 <- 3.33 * (3.60892 - (0.2 * flow6)) * flow6 ^ 1.5          # Q eqn (cfs)
+#   flow8 <- flow7 * 28.317                                          #Flows in (Liters/Second); converting cubic ft to liters
+#   flow9 <- flow8 * (1 / 16.67)                                     #Flows in (Meters Cubed/Minute); converting liters to 
+#   flow10 <- flow9 / 60                                             #Flows in (Meters Cubed/Second)
+# #################################################################################################
   
-  ### CALCULATE THE FLOW RATES AT INFLOW ### #Taken from RPM's 'old school' script (MEL 2018-07-06)
+  ### CALCULATE THE FLOW RATES AT INFLOW ### #(MEL 2018-07-06)
   #################################################################################################
   flow3 <- flow2*0.70324961490205 - 0.1603375 + 0.03048  # Response: Height above the weir (m)
-  flow4 <- (0.62 * (2/3) * (1.1) * 4.43 * (flow3 ^ 1.5) * 35.3147) # Flow CFS - I have not changed this
-  flow_final <- flow4*0.028316847                                  # Flow CMS
+#pressure*conversion factor for head in m - distance from tip of transducer to lip of weir + distance from tip of transducer to pressure sensor (eq converted to meters)
+  flow4 <- (0.62 * (2/3) * (1.1) * 4.43 * (flow3 ^ 1.5) * 35.3147) # Flow CFS - MEL: I have not changed this; should be rating curve with area of weir
+  flow_final <- flow4*0.028316847                                  # Flow CMS - just a conversion factor from cfs to cms
   #################################################################################################
 
 
 diff$Reservoir <- "FCR" #creates reservoir column to match other data sets
 diff$Site <- 100  #creates site column to match other data sets
-diff$Flow_cms <- flow_final
+diff$Flow_cms <- flow_final #creates column for flow
 
 ##visualization of inflow
 plot_inflow <- diff %>%
@@ -271,13 +262,13 @@ ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_boxplot_wo_2
   #   # Rename columns if needed (TargetName = OriginalName)
   #   rename(Flow_cms = flow10)
   
-Inflow_Final <- FLOWS[,c(4,5,1,3,2,6)] #orders columns
+Inflow_Final <- diff[,c(6,7,2,4,1,5,3)] #orders columns
 Inflow_Final <- Inflow_Final[order(Inflow_Final$DateTime),] #orders file by date
 #Inflow_Final <- Inflow_Final[-c(1,which(Inflow_Final$DateTime>"2017-12-31 23:45:00")),] #limits data to before 2017 and takes out first row erroneous value
-Inflow_Final <- Inflow_Final[-which(Inflow_Final$DateTime>"2017-12-31 23:45:00"),]
-
+Inflow_Final <- Inflow_Final %>%
+  filter(DateTime < "2017-12-31 23:45:00")
 # Write to CSV
-write.csv(Inflow_Final, './Formatted_Data/MakeEMLInflow/inflow.csv', row.names=F) #this would not push to github?? did manual upload
+write.csv(Inflow_Final, './Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_working.csv', row.names=F) 
 
 
 ####### MISCELLANEOUS TEST CODE #########
