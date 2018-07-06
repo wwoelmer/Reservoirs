@@ -97,6 +97,22 @@ both_pressures
 
 ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/all_pressure_types.png", both_pressures, device = "png")
 
+##Test to develop regression between nonsense units and psi
+nonsense <- read_csv("./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow.csv")
+
+test <- left_join(nonsense, diff, by = "DateTime") %>%
+  filter(!is.na(Pressure_psia.y))
+
+corr_units = ggplot(data = test, aes(x = Pressure_psia.x, y = Pressure_psia.y))+
+  geom_point()+
+  geom_smooth(method=lm)+
+  geom_abline(slope = 1, intercept = 0)+
+  stat_smooth_func(geom="text",method="lm",hjust=0,parse=TRUE)+
+  theme_bw()
+corr_units
+  
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/correlation_nonsense_units_w_psi.png", corr_units, device = "png")
+#Yeah....this is not a good idea
 
 # ###Inflow data must be paired with barometric data, this is an attempt to convert that.. maybe disregard
 # 
