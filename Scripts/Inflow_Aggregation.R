@@ -39,9 +39,6 @@ rawplot = ggplot(data = daily_flow, aes(x = Date, y = daily_pressure_avg))+
 rawplot
 ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/raw_inflow_pressure.png", rawplot, device = "png")
 
-##based on this anything below 13.95 in 2017 for daily average looks like an outlier to me (when weir was leaking)
-daily_flow[which(daily_flow$daily_pressure_avg <= 13.95),]
-##10-24 to 10-30 but I thought it was down for longer than that?? may need to re-evaluate
 
 pressure_hist = ggplot(data = daily_flow, aes(x = daily_pressure_avg, group = Year, fill = Year))+
   geom_density(alpha=0.5)+
@@ -59,11 +56,17 @@ pressure_boxplot = ggplot(data = daily_flow, aes(x = Year, y = daily_pressure_av
 pressure_boxplot
 ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/raw_inflow_pressure_boxplot.png", pressure_boxplot, device = "png")
 
+##based on this anything below 13.95 in 2017 for daily average looks like an outlier to me (when weir was leaking)
+daily_flow[which(daily_flow$daily_pressure_avg <= 13.95),]
+##10-24 to 10-30 but I thought it was down for longer than that?? may need to re-evaluate
 
 ##Read in catwalk pressure data
 pressure <- read_csv("./Data/DataNotYetUploadedToEDI/FCR_DOsonde_2012to2017.csv")
+pressure_a4d <- dir(path = "./Data/DataNotYetUploadedToEDI/Raw_inflow/Barometric_CSV", pattern = "FCR_BV*") %>% 
+  map_df(~ read_csv(file.path(path = "./Data/DataNotYetUploadedToEDI/Raw_inflow/Barometric_CSV", .), col_types = cols(.default = "c"), skip = 28))
+pressure_a4d = pressure_a4d[,-c(1,3)]
 
-##Data wrangling to get columns in correct format
+##Data wrangling to get columns in correct format and combine data from senvu.net and Aqua4Plus
 pressure = pressure %>%
   select(Date, `Barometric Pressure Pressure (PSI)`) %>%
   mutate(DateTime = parse_date_time(Date, 'ymd HMS',tz = "EST")) %>%
@@ -71,10 +74,75 @@ pressure = pressure %>%
   select(-Date) %>%
   mutate(Baro_pressure_psi = as.double(Baro_pressure_psi))
 
-##Combine inflow and catwalk barometric pressure
-diff = left_join(inflow_pressure, pressure, by = "DateTime") %>%
+pressure_a4d <- pressure_a4d %>%
+  rename(Date = `Date/Time`) %>%
+  mutate(DateTime = parse_date_time(Date, 'dmy HMS',tz = "EST")) %>%
+  select(-Date) %>%
+  rename(Baro_pressure_psi = `Pressure(psi)`) %>%
+  mutate(Baro_pressure_psi = as.double(Baro_pressure_psi))
+
+baro_pressure <- bind_rows(pressure, pressure_a4d)
+baro_pressure = baro_pressure %>%
   filter(!is.na(Baro_pressure_psi)) %>%
-  mutate(Pressure_psia = Pressure_psi - Baro_pressure_psi)
+baro_pressure = baro_pressure %>%
+  arrange(DateTime) %>%
+baro_pressure = baro_pressure %>%
+  mutate(DateTime = parse_date_time(DateTime, 'ymd HMS',tz = "EST"))
+
+baro_pressure <- distinct(baro_pressure)
+
+
+##Preliminary visualization of raw pressure data from catwalk transducer
+plot_catwalk <- baro_pressure %>%
+  mutate(Date = date(DateTime))
+
+daily_catwalk <- group_by(plot_catwalk, Date) %>% summarize(daily_pressure_avg = mean(Baro_pressure_psi)) %>% mutate(Year = as.factor(year(Date)))
+
+rawplot = ggplot(data = daily_catwalk[which(daily_catwalk$Year == 2016 & month(daily_catwalk$Date) == 12),])+
+  geom_point(aes(x = Date, y = daily_pressure_avg))+
+  ylab("Daily avg. catwalk pressure (psi)")+
+  theme_bw()
+rawplot
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/raw_baro_pressure.png", rawplot, device = "png")
+
+
+pressure_hist = ggplot(data = daily_catwalk, aes(x = daily_pressure_avg, group = Year, fill = Year))+
+  geom_density(alpha=0.5)+
+  xlab("Daily avg. catwalk pressure (psi)")+
+  theme_bw()
+pressure_hist
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/raw_catwalk_pressure_histogram.png", pressure_hist, device = "png")
+
+
+pressure_boxplot = ggplot(data = daily_catwalk, aes(x = Year, y = daily_pressure_avg, group = Year, fill = Year))+
+  geom_boxplot()+
+  #geom_jitter(alpha = 0.1)+
+  ylab("Daily avg. catwalk pressure (psi)")+
+  theme_bw()
+pressure_boxplot
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/raw_catwalk_pressure_boxplot.png", pressure_boxplot, device = "png")
+
+##based on this anything above 14.2 or below 13.5 in 2014 for daily average looks like an outlier to me (when weir was leaking)
+daily_catwalk[which(daily_catwalk$daily_pressure_avg <= 13.5 | daily_catwalk$daily_pressure_avg >= 14.2),]
+##03-22 to 04-18 looks wonky
+
+##Combine inflow and catwalk barometric pressure
+inflow_pressure$DateTime <- as.POSIXct(inflow_pressure$DateTime, format = "%Y-%m-%d %I:%M:%S %p")
+baro_pressure$DateTime <- as.POSIXct(baro_pressure$DateTime, format = "%Y-%m-%d %I:%M:%S %p")
+
+
+baro <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/test_baro.csv")
+inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/test_inflow.csv")
+
+#correct datetime wonkiness from 2013-09-04 10:30 AM to 2014-02-05 11:00 AM
+inflow$DateTime[24304:39090] = inflow$DateTime[24304:39090] - (6*60+43)
+
+diff = left_join(baro, inflow, by = "DateTime") %>%
+  #mutate(DateTime = ifelse(second(DateTime) = 0, DateTime, ))
+  mutate(Pressure_psia = Pressure_psi - Baro_pressure_psi) %>%
+  select(-c(1,4))
+diff <- distinct(diff)
+write.csv(diff, ("./Data/DataNotYetUploadedToEDI/Raw_inflow/psia_working.csv"))
 
 plot_both <- diff %>%
   mutate(Date = date(DateTime)) 
@@ -144,14 +212,59 @@ flow2 <- diff$Pressure_psia
   flow9 <- flow8 * (1 / 16.67)                                     #Flows in (Meters Cubed/Minute); converting liters to 
   flow10 <- flow9 / 60                                             #Flows in (Meters Cubed/Second)
 #################################################################################################
+  
+  ### CALCULATE THE FLOW RATES AT INFLOW ### #Taken from RPM's 'old school' script (MEL 2018-07-06)
+  #################################################################################################
+  flow3 <- flow2*0.70324961490205 - 0.1603375 + 0.03048  # Response: Height above the weir (m)
+  flow4 <- (0.62 * (2/3) * (1.1) * 4.43 * (flow3 ^ 1.5) * 35.3147) # Flow CFS - I have not changed this
+  flow_final <- flow4*0.028316847                                  # Flow CMS
+  #################################################################################################
 
 
 diff$Reservoir <- "FCR" #creates reservoir column to match other data sets
 diff$Site <- 100  #creates site column to match other data sets
-diff$Flow_cms <- flow10
+diff$Flow_cms <- flow_final
 
 ##visualization of inflow
-inflow = ggplot(diff, aes(x = DateTime, y = Flow_cms))
+plot_inflow <- diff %>%
+  mutate(Date = date(DateTime))
+
+daily_inflow <- group_by(plot_inflow, Date) %>% summarize(daily_flow_avg = mean(Flow_cms)) %>% mutate(Year = as.factor(year(Date)))
+
+
+inflow = ggplot(daily_inflow, aes(x = Date, y = daily_flow_avg))+
+  geom_point()+
+  ylab("Avg. daily flow (cms)")+
+  theme_bw()
+inflow
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow.png", inflow, device = "png")
+
+
+inflow2 = ggplot(daily_inflow, aes(x = Date, y = daily_flow_avg))+
+  geom_line()+
+  ylim(0,0.3)+
+  ylab("Avg. daily flow (cms)")+
+  theme_bw()
+inflow2
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_no_outliers.png", inflow2, device = "png")
+
+inflow_hist = ggplot(data = daily_inflow, aes(x = daily_flow_avg, group = Year, fill = Year))+
+  geom_density(alpha=0.5)+
+  xlab("Daily avg. inflow (cms)")+
+  xlim(0,0.5)+
+  theme_bw()
+inflow_hist
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_histogram_wo_20140405.png", inflow_hist, device = "png")
+
+
+inflow_boxplot = ggplot(data = daily_inflow, aes(x = Year, y = daily_flow_avg, group = Year, fill = Year))+
+  geom_boxplot()+
+  #geom_jitter(alpha = 0.1)+
+  ylab("Daily avg. inflow (cms)")+
+  ylim(0,0.3)+
+  theme_bw()
+inflow_boxplot
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_boxplot_wo_20140405.png", inflow_boxplot, device = "png")
 
   # FLOWS <- bind_cols(diff,flow10) #binds relevant columns
   # FLOWS <- FLOWS %>%
