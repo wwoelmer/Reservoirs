@@ -6,16 +6,16 @@ Advanced Calibration Data
 ,Pressure,25-Mar-13 09:51:57,0.000000,-0.000063,1.000679,0.000009,0.000455,0.153440,0.000000,1.000000
 
 Field Calibration Data
-,Temperature,Cal Date,m,b
-,Pressure,Cal Date,m,b
-,Temperature(degC),unknown,1.000000,0.00
-,Pressure(psi),unknown,1.000000,0.00
+,Temperature,Cal Date,Slope,Offset
+,Pressure,Cal Date,Slope,Offset
+,Temperature(degC),unknown,1.000000,0.000
+,Pressure(psi),unknown,1.000000,0.0000
 
-Sensor/Session information
-SensorSN, 21309003 ,,Modbus Addr., 2 
+Sensor/File information
+Sensor SN, 21309003 ,,Modbus Addr., 2 
 Sensor Type,PT2X,,Initialized w/fw Rev,"2. 9"
 Sensor Name,INW Smart Sensor,,Uploaded,"Aqua4Plus 1.9.302"
-Session Name,FCR INF 2018-07-05,,Exported,"Aqua4Plus 1.9.302"
+File Name,FCR INF 2018-07-05,,Exported,"Aqua4Plus 2.1.4"
 # Records,  1723 
 Statistical Data,,Temperature(degC),Pressure(psi),
 ,Sensor Range,-40 - +125 degC,30 psia,
