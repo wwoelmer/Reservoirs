@@ -11,8 +11,12 @@ pacman::p_load(tidyverse, lubridate, akima, reshape2,
 
 
 # Load .txt files whose file names end in _Chemistry
-raw_chem <- dir(path = "C:/Users/Mary Lofton/", pattern = "*_FCR_50.txt") %>% 
-  map_df(~ read_tsv(file.path(path = "./Data", .), col_types = cols(.default = "c")))
+raw_fp <- dir(path = "./Data/DataNotYetUploadedToEDI/Raw_fluoroprobe", pattern = "*_FCR_50.txt") %>% 
+  map_df(~ read_tsv(file.path(path = "./Data/DataNotYetUploadedToEDI/Raw_fluoroprobe", .), col_types = cols(.default = "c")))
+
+fp <- raw_fp %>%
+  select(`Date/Time`,`Green Algae`,`Bluegreen`,`Diatoms`,`Cryptophyta`,`Yellow substances`,
+         `Total conc.`,`Transmission`,`Depth`) %>%
 
 # filter out depths in the CTD cast that are closest to these specified values.
 df.final<-data.frame()
