@@ -1,341 +1,240 @@
-# FCR fluoroprobe Heatmaps
+# Title: Fluoroprobe Heatmaps
 # Author: Ryan McClure & Mary Lofton
-# Date last updated: 080718
+# Date last updated: 08AUG18
+# Description: Makes heatmaps of fluoroprobe data
 
-# Makes heatmaps of the fluoroprobe data in Falling Creek reservoir
+rm(list=ls())
+
+########WHAT RESERVOIR ARE YOU WORKING WITH?########
+Reservoir = "CCR" #choose from FCR, BVR, CCR
+####################################################
+
+
 
 # load packages
 #install.packages('pacman')
 pacman::p_load(tidyverse, lubridate, akima, reshape2, 
-               gridExtra, grid, colorRamps,RColorBrewer, rLakeAnalyzer)
+               gridExtra, grid, colorRamps,RColorBrewer, rLakeAnalyzer, cowplot)
 
 
-# Load .txt files whose file names end in _Chemistry
-raw_fp <- dir(path = "./Data/DataNotYetUploadedToEDI/Raw_fluoroprobe", pattern = "*_FCR_50.txt") %>% 
-  map_df(~ read_tsv(file.path(path = "./Data/DataNotYetUploadedToEDI/Raw_fluoroprobe", .), col_types = cols(.default = "c")))
+# Load .txt files for appropriate reservoir 
+
+#NOTE: this script is not currently set up to handle upstream sites in FCR
+col_names <- names(read_tsv("./Data/DataNotYetUploadedToEDI/Raw_fluoroprobe/20180410_FCR_50.txt", n_max = 0))
+
+raw_fp <- dir(path = "./Data/DataNotYetUploadedToEDI/Raw_fluoroprobe", pattern = paste0("*_",Reservoir,"_50.txt")) %>% 
+  map_df(~ read_tsv(file.path(path = "./Data/DataNotYetUploadedToEDI/Raw_fluoroprobe", .), col_types = cols(.default = "c"), col_names = col_names, skip = 2))
 
 fp <- raw_fp %>%
-  select(`Date/Time`,`Green Algae`,`Bluegreen`,`Diatoms`,`Cryptophyta`,`Yellow substances`,
-         `Total conc.`,`Transmission`,`Depth`) %>%
+  mutate(DateTime = `Date/Time`, GreenAlgae_ugL = as.numeric(`Green Algae`), Bluegreens_ugL = as.numeric(`Bluegreen`),
+         Browns_ugL = as.numeric(`Diatoms`), Mixed_ugL = as.numeric(`Cryptophyta`), YellowSubstances_ugL = as.numeric(`Yellow substances`),
+         TotalConc_ugL = as.numeric(`Total conc.`), Transmission_perc = as.numeric(`Transmission`), Depth_m = `Depth`) %>%
+  select(DateTime, GreenAlgae_ugL, Bluegreens_ugL, Browns_ugL, Mixed_ugL, YellowSubstances_ugL,
+         TotalConc_ugL, Transmission_perc, Depth_m) %>%
+  mutate(DateTime = as.POSIXct(as_datetime(DateTime, tz = "", format = "%m/%d/%Y %I:%M:%S %p"))) %>%
+  mutate(Date = date(DateTime), DOY = yday(DateTime))
 
-# filter out depths in the CTD cast that are closest to these specified values.
-df.final<-data.frame()
-ctd1<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 0.1)))
-ctd2<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 0.4)))
-ctd3<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 0.7)))
-ctd4<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 1)))
-ctd5<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 1.3)))
-ctd6<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 1.6)))
-ctd7<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 1.9)))
-ctd8<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 2.3)))
-ctd9<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 2.6)))
-ctd10<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 2.9)))
-ctd11<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 3.2)))
-ctd12<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 3.5)))
-ctd13<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 3.8)))
-ctd14<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 4.1)))
-ctd15<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 4.4)))
-ctd16<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 4.7)))
-ctd17<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 5)))
-ctd18<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 5.3)))
-ctd19<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 5.6)))
-ctd20<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 5.9)))
-ctd21<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 6.2)))
-ctd22<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 6.5)))
-ctd23<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 6.8)))
-ctd24<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 7.1)))
-ctd25<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 7.4)))
-ctd26<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 7.7)))
-ctd27<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 8)))
-ctd28<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 8.3)))
-ctd29<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 8.7)))
-ctd30<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 9)))
-ctd31<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 9.3)))
-ctd32<-ctd %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - 9.6)))
 
+
+# filter out depths in the fp cast that are closest to specified values.
+
+if (Reservoir == "FCR"){
+  
+  depths = seq(0.1, 9.7, by = 0.3)
+  df.final<-data.frame()
+  
+  for (i in 1:length(depths)){
+    
+fp_layer<-fp %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - depths[i])))
 
 # Bind each of the data layers together.
-df.final = rbind(ctd1,ctd2,ctd3,ctd4,ctd5,ctd6,ctd7,ctd8,ctd9,ctd10,ctd11,ctd12,ctd13,ctd14,ctd15,ctd16,ctd17,ctd18,ctd19,
-                 ctd20,ctd21,ctd22,ctd23,ctd24,ctd25,ctd26,ctd27,ctd28,ctd29,ctd30,ctd31, ctd32)
+df.final = bind_rows(df.final, fp_layer)
+
+}
+
+
+} else if (Reservoir == "BVR"){
+  
+  depths = seq(0.1, 10.3, by = 0.3)
+  df.final<-data.frame()
+  
+  for (i in 1:length(depths)){
+    
+    fp_layer<-fp %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - depths[i])))
+    
+    # Bind each of the data layers together.
+    df.final = bind_rows(df.final, fp_layer)
+    
+  }
+  
+} else if(Reservoir == "CCR"){
+  
+  depths = seq(0.1, 19.9, by = 0.3)
+  df.final<-data.frame()
+  
+  for (i in 1:length(depths)){
+    
+    fp_layer<-fp %>% group_by(Date) %>% slice(which.min(abs(as.numeric(Depth_m) - depths[i])))
+    
+    # Bind each of the data layers together.
+    df.final = bind_rows(df.final, fp_layer)
+    
+  }
+  
+}
 
 # Re-arrange the data frame by date
-ctd <- arrange(df.final, Date)
+fp_new <- arrange(df.final, Date)
 
 # Round each extracted depth to the nearest 10th. 
-ctd$Depth_m <- round(as.numeric(ctd$Depth_m), digits = 0.5)
+fp_new$Depth_m <- round(as.numeric(fp_new$Depth_m), digits = 0.5)
 
-# Select and make each CTD variable a separate dataframe
+# Select and make each fp variable a separate dataframe
 # I have done this for the heatmap plotting purposes. 
-temp <- select(ctd, DOY, Depth_m, Temp_C)
-chla <- select(ctd, DOY, Depth_m, Chla_ugL)
-turb <- select(ctd, DOY, Depth_m, Turb_NTU)
-cond <- select(ctd, DOY, Depth_m, Cond_uScm)
-spccond <- select(ctd, DOY, Depth_m, Spec_Cond_uScm)
-do <- select(ctd, DOY, Depth_m, DO_mgL)
-psat <- select(ctd, DOY, Depth_m, DO_pSat)
-ph <- select(ctd, DOY, Depth_m, pH)
-orp <- select(ctd, DOY, Depth_m, ORP_mV)
-par <- select(ctd, DOY, Depth_m, PAR)
-sal <- select(ctd, DOY, Depth_m, Salinity)
-desc <- select(ctd, DOY, Depth_m, Descent.Rate..m.s.)
-
-
-# rLakeAnalyzer for Thermocline Depths
-
-# Pulling just temp, depth and date and going from long to wide. 
-temp_RLA <- temp %>%
-  select(Date,Depth_m,Temp_C)%>%
-  spread(Depth_m,Temp_C)
-
-# renaming the column names to include wtr_ 
-# Otherwise, rLakeAnaylzer will not run!
-colnames(temp_RLA)[-1] = paste0('wtr_',colnames(temp_RLA)[-1])
-
-# rename the first column to "datetime"
-names(temp_RLA)[1] <- "datetime"
-
-# Calculate thermocline depth
-FCR_thermo_18 <- ts.thermo.depth(temp_RLA)
-
-#rename the datetime name back to Date
-names(FCR_thermo_18)[1] <- "Date"
-
-# Using dplyr, rejoin the DOY column from the temp dataframe to the thermocline depth dataframe. 
-# this is a bit more ambiguous than it needs to be, but it works. 
-FCR_thermo_18 <- left_join(FCR_thermo_18, temp, by = "Date")
+green <- select(fp_new, DateTime, Depth_m, GreenAlgae_ugL, Date, DOY)
+bluegreen <- select(fp_new, DateTime, Depth_m, Bluegreens_ugL, Date, DOY)
+brown <- select(fp_new, DateTime, Depth_m, Browns_ugL, Date, DOY)
+mixed <- select(fp_new, DateTime, Depth_m, Mixed_ugL, Date, DOY)
+yellow <- select(fp_new, DateTime, Depth_m, YellowSubstances_ugL, Date, DOY)
+total <- select(fp_new, DateTime, Depth_m, TotalConc_ugL, Date, DOY)
+trans <- select(fp_new, DateTime, Depth_m, Transmission_perc, Date, DOY)
 
 
 # Complete data interpolation for the heatmaps
 # interative processes here
 
-#temperature
-interp_temp <- interp(x=temp$DOY, y = temp$Depth_m, z = temp$Temp_C,
-                      xo = seq(min(temp$DOY), max(temp$DOY), by = .1), 
+#green algae
+##NOTE: the interp function WILL NOT WORK if your vectors are not numeric or have NAs or Infs
+interp_green <- interp(x=green$DOY, y = green$Depth_m, z = green$GreenAlgae_ugL,
+                      xo = seq(min(green$DOY), max(green$DOY), by = .1), 
                       yo = seq(0.1, 9.6, by = 0.01),
-                      extrap = F, linear = T, duplicate = "strip")
-interp_temp <- interp2xyz(interp_temp, data.frame=T)
+                      extrap = T, linear = T, duplicate = "strip")
+interp_green <- interp2xyz(interp_green, data.frame=T)
 
-#chlorophyll a
-interp_chla <- interp(x=chla$DOY, y = chla$Depth_m, z = chla$Chla_ugL,
-                      xo = seq(min(chla$DOY), max(chla$DOY), by = .1), 
+#Bluegreen algae
+interp_bluegreen <- interp(x=bluegreen$DOY, y = bluegreen$Depth_m, z = bluegreen$Bluegreens_ugL,
+                      xo = seq(min(bluegreen$DOY), max(bluegreen$DOY), by = .1), 
                       yo = seq(0.1, 9.6, by = 0.01),
                       extrap = F, linear = T, duplicate = "strip")
-interp_chla <- interp2xyz(interp_chla, data.frame=T)
+interp_bluegreen <- interp2xyz(interp_bluegreen, data.frame=T)
 
-#turbidity
-interp_turb <- interp(x=turb$DOY, y = turb$Depth_m, z = turb$Turb_NTU,
-                      xo = seq(min(turb$DOY), max(turb$DOY), by = .1), 
+#Browns
+interp_brown <- interp(x=brown$DOY, y = brown$Depth_m, z = brown$Browns_ugL,
+                      xo = seq(min(brown$DOY), max(brown$DOY), by = .1), 
                       yo = seq(0.1, 9.6, by = 0.01),
                       extrap = F, linear = T, duplicate = "strip")
-interp_turb <- interp2xyz(interp_turb, data.frame=T)
+interp_brown <- interp2xyz(interp_brown, data.frame=T)
 
-#conductivity
-interp_cond <- interp(x=cond$DOY, y = cond$Depth_m, z = cond$Cond_uScm,
-                      xo = seq(min(cond$DOY), max(cond$DOY), by = .1), 
+#Mixed
+interp_mixed <- interp(x=mixed$DOY, y = mixed$Depth_m, z = mixed$Mixed_ugL,
+                      xo = seq(min(mixed$DOY), max(mixed$DOY), by = .1), 
                       yo = seq(0.1, 9.6, by = 0.01),
                       extrap = F, linear = T, duplicate = "strip")
-interp_cond <- interp2xyz(interp_cond, data.frame=T)
+interp_mixed <- interp2xyz(interp_mixed, data.frame=T)
 
-#specific conductivity
-interp_spccond <- interp(x=spccond$DOY, y = spccond$Depth_m, z = spccond$Spec_Cond_uScm,
-                      xo = seq(min(spccond$DOY), max(spccond$DOY), by = .1), 
+#Yellow substances
+interp_yellow <- interp(x=yellow$DOY, y = yellow$Depth_m, z = yellow$YellowSubstances_ugL,
+                      xo = seq(min(yellow$DOY), max(yellow$DOY), by = .1), 
                       yo = seq(0.1, 9.6, by = 0.01),
                       extrap = F, linear = T, duplicate = "strip")
-interp_spccond <- interp2xyz(interp_spccond, data.frame=T)
+interp_yellow <- interp2xyz(interp_yellow, data.frame=T)
 
-#dissolved oxygen
-interp_do <- interp(x=do$DOY, y = do$Depth_m, z = do$DO_mgL,
-                      xo = seq(min(do$DOY), max(do$DOY), by = .1), 
+#Total conc.
+interp_total <- interp(x=total$DOY, y = total$Depth_m, z = total$TotalConc_ugL,
+                      xo = seq(min(total$DOY), max(total$DOY), by = .1), 
                       yo = seq(0.1, 9.6, by = 0.01),
                       extrap = F, linear = T, duplicate = "strip")
-interp_do <- interp2xyz(interp_do, data.frame=T)
+interp_total <- interp2xyz(interp_total, data.frame=T)
 
-#percent saturation
-interp_psat <- interp(x=psat$DOY, y = psat$Depth_m, z = psat$DO_pSat,
-                      xo = seq(min(psat$DOY), max(psat$DOY), by = .1), 
-                      yo = seq(0.1, 9.6, by = 0.01),
-                      extrap = F, linear = T, duplicate = "strip")
-interp_psat <- interp2xyz(interp_psat, data.frame=T)
-
-#pH
-interp_ph <- interp(x=ph$DOY, y = ph$Depth_m, z = ph$pH,
-                      xo = seq(min(ph$DOY), max(ph$DOY), by = .1), 
-                      yo = seq(0.1, 9.6, by = 0.01),
-                      extrap = F, linear = T, duplicate = "strip")
-interp_ph <- interp2xyz(interp_ph, data.frame=T)
-
-#Oxidation reduction pottential
-interp_orp <- interp(x=orp$DOY, y = orp$Depth_m, z = orp$ORP_mV,
-                      xo = seq(min(orp$DOY), max(orp$DOY), by = .1), 
-                      yo = seq(0.1, 9.6, by = 0.01),
-                      extrap = F, linear = T, duplicate = "strip")
-interp_orp <- interp2xyz(interp_orp, data.frame=T)
-
-#photosynthetic active radiation
-interp_par <- interp(x=par$DOY, y = par$Depth_m, z = par$PAR,
-                      xo = seq(min(par$DOY), max(par$DOY), by = .1), 
-                      yo = seq(0.1, 9.6, by = 0.01),
-                      extrap = F, linear = T, duplicate = "strip")
-interp_par <- interp2xyz(interp_par, data.frame=T)
-
-#salinity
-interp_sal <- interp(x=sal$DOY, y = sal$Depth_m, z = sal$Salinity,
-                      xo = seq(min(sal$DOY), max(sal$DOY), by = .1), 
-                      yo = seq(0.1, 9.6, by = 0.01),
-                      extrap = F, linear = T, duplicate = "strip")
-interp_sal <- interp2xyz(interp_sal, data.frame=T)
-
-#descent rate
-interp_desc <- interp(x=desc$DOY, y = desc$Depth_m, z = desc$Descent.Rate..m.s.,
-                      xo = seq(min(desc$DOY), max(desc$DOY), by = .1), 
-                      yo = seq(0.1, 9.6, by = 0.01),
-                      extrap = F, linear = T, duplicate = "strip")
-interp_desc <- interp2xyz(interp_desc, data.frame=T)
+#Transmission
+interp_trans <- interp(x=trans$DOY, y = trans$Depth_m, z = trans$Transmission_perc,
+                       xo = seq(min(trans$DOY), max(trans$DOY), by = .1), 
+                       yo = seq(0.1, 9.6, by = 0.01),
+                       extrap = F, linear = T, duplicate = "strip")
+interp_trans <- interp2xyz(interp_trans, data.frame=T)
 
 # Plotting #
 
-# This a theme I have adapted from 
-#https://gist.github.com/jslefche/eff85ef06b4705e6efbc
-# I LIKE IT!
-theme_black = function(base_size = 12, base_family = "") {
-  
-  theme_grey(base_size = base_size, base_family = base_family) %+replace%
-    
-    theme(
-      # Specify axis options
-      axis.line = element_line(size = 1, colour = "white"),  
-      axis.text.x = element_text(size = base_size*1, color = "white", lineheight = 0.9),  
-      axis.text.y = element_text(size = base_size*1, color = "white", lineheight = 0.9),  
-      axis.ticks = element_line(color = "white", size  =  1),  
-      axis.title.x = element_text(size = base_size, color = "white", margin = margin(0, 10, 0, 0)),  
-      axis.title.y = element_text(size = base_size, color = "white", angle = 90, margin = margin(0, 10, 0, 0)),  
-      axis.ticks.length = unit(0.5, "lines"),   
-      # Specify legend options
-      legend.background = element_rect(color = NA, fill = "black"),  
-      legend.key = element_rect(color = "white",  fill = "black"),  
-      legend.key.size = unit(2, "lines"),  
-      legend.key.height = NULL,  
-      legend.key.width = NULL,      
-      legend.text = element_text(size = base_size*0.8, color = "white"),  
-      legend.title = element_text(size = base_size*1.5, face = "bold", hjust = 0, color = "white"),  
-      legend.position = "right",  
-      legend.text.align = NULL,  
-      legend.title.align = NULL,  
-      legend.direction = "vertical",  
-      legend.box = NULL, 
-      # Specify panel options
-      panel.background = element_rect(fill = "black", color  =  NA),  
-      panel.border = element_rect(fill = NA, color = "black"),  
-      panel.grid.major = element_line(color = "black"),  
-      panel.grid.minor = element_line(color = "black"),  
-      panel.margin = unit(0, "lines"),   
-      # Specify facetting options
-      strip.background = element_rect(fill = "grey30", color = "grey10"),  
-      strip.text.x = element_text(size = base_size*0.8, color = "white"),  
-      strip.text.y = element_text(size = base_size*0.8, color = "white",angle = -90),  
-      # Specify plot options
-      plot.background = element_rect(color = "black", fill = "black"),  
-      plot.title = element_text(size = base_size*1.5, color = "white"),  
-      plot.margin = unit(rep(1, 4), "lines")
-      
-    )
-  
-}
-
 # Create a pdf so the plots can all be saved in one giant bin!
-pdf("FCR_CTD_2018.pdf", width=10, height=30)
 
-#temperature
-p1 <- ggplot(interp_temp, aes(x=x, y=y))+
+#Green Algae
+p1 <- ggplot(interp_green, aes(x=x, y=y))+
   geom_raster(aes(fill=z))+
-  scale_y_reverse()+
-  geom_point(data = ctd, aes(x=DOY, y=Flag, z=NULL), pch = 25, size = 1.5, color = "white", fill = "black")+
-  geom_line(data = FCR_thermo_18, aes(x=DOY, y=thermo.depth, z=NULL), color = "black", lwd = 1)+
-  geom_point(data = FCR_thermo_18, aes(x=DOY, y=thermo.depth, z=NULL), pch = 21, size = 2, color = "white", fill = "black")+
+  scale_y_reverse(expand = c(0,0))+
+  scale_x_continuous(expand = c(0, 0)) +
   scale_fill_gradientn(colours = blue2green2red(60), na.value="gray")+
-  labs(x = "Day of year", y = "Depth (m)", title = "FCR Temperature Heatmap",fill=expression(''*~degree*C*''))+
-  theme_black()
+  labs(x = "Day of year", y = "Depth (m)", title = paste0(Reservoir, " Green Algae Heatmap"),fill=expression(paste(mu,g/L)))+
+  theme_bw()
 
-#chlorophyll a
-p2 <- ggplot(interp_chla, aes(x=x, y=y))+
+#Bluegreens
+p2 <- ggplot(interp_bluegreen, aes(x=x, y=y))+
   geom_raster(aes(fill=z))+
-  scale_y_reverse()+
-  geom_point(data = ctd, aes(x=DOY, y=Flag, z=NULL), pch = 25, size = 1.5, color = "white", fill = "black")+
-  geom_line(data = FCR_thermo_18, aes(x=DOY, y=thermo.depth, z=NULL), color = "black", lwd = 1)+
-  geom_point(data = FCR_thermo_18, aes(x=DOY, y=thermo.depth, z=NULL), pch = 21, size = 2, color = "white", fill = "black")+  
+  scale_y_reverse(expand = c(0,0))+
+  scale_x_continuous(expand = c(0, 0)) +
   scale_fill_gradientn(colours = blue2green2red(60), na.value="gray")+
-  labs(x = "Day of year", y = "Depth (m)", title = "FCR CHLA Heatmap", fill=expression(paste("", mu, "g/L")))+
-  theme_black()
+  labs(x = "Day of year", y = "Depth (m)", title = paste0(Reservoir, " Cyanobacteria Heatmap"),fill=expression(paste(mu,g/L)))+
+  theme_bw()
+#p2
 
-#turbidity
-p3 <- ggplot(interp_turb, aes(x=x, y=y))+
+#Browns
+p3 <- ggplot(interp_brown, aes(x=x, y=y))+
   geom_raster(aes(fill=z))+
-  scale_y_reverse()+
-  geom_point(data = ctd, aes(x=DOY, y=Flag, z=NULL), pch = 25, size = 1.5, color = "white", fill = "black")+
-  geom_line(data = FCR_thermo_18, aes(x=DOY, y=thermo.depth, z=NULL), color = "black", lwd = 1)+
-  geom_point(data = FCR_thermo_18, aes(x=DOY, y=thermo.depth, z=NULL), pch = 21, size = 2, color = "white", fill = "black")+  
+  scale_y_reverse(expand = c(0,0))+
+  scale_x_continuous(expand = c(0, 0)) +
   scale_fill_gradientn(colours = blue2green2red(60), na.value="gray")+
-  labs(x = "Day of year", y = "Depth (m)", title = "FCR Turbidity Heatmap", fill="NTU")+
-  theme_black()
+  labs(x = "Day of year", y = "Depth (m)", title = paste0(Reservoir, " 'BROWNS' Heatmap"),fill=expression(paste(mu,g/L)))+
+  theme_bw()
+#p3
 
-#specific conductivity
-p4 <- ggplot(interp_spccond, aes(x=x, y=y))+
+#Mixed
+p4 <- ggplot(interp_mixed, aes(x=x, y=y))+
   geom_raster(aes(fill=z))+
-  scale_y_reverse()+
-  geom_point(data = ctd, aes(x=DOY, y=Flag, z=NULL), pch = 25, size = 1.5, color = "white", fill = "black")+
-  geom_line(data = FCR_thermo_18, aes(x=DOY, y=thermo.depth, z=NULL), color = "black", lwd = 1)+
-  geom_point(data = FCR_thermo_18, aes(x=DOY, y=thermo.depth, z=NULL), pch = 21, size = 2, color = "white", fill = "black")+  
+  scale_y_reverse(expand = c(0,0))+
+  scale_x_continuous(expand = c(0, 0)) +
   scale_fill_gradientn(colours = blue2green2red(60), na.value="gray")+
-  labs(x = "Day of year", y = "Depth (m)", title = "FCR Specific Conductivity Heatmap",fill=expression(paste("", mu, "S/cm")))+
-  theme_black()
+  labs(x = "Day of year", y = "Depth (m)", title = paste0(Reservoir, " 'MIXED' Heatmap"),fill=expression(paste(mu,g/L)))+
+  theme_bw()
+#p4
 
-#dissolved oxygen
-p5 <- ggplot(interp_do, aes(x=x, y=y))+
+#Yellow substances
+p5 <- ggplot(interp_yellow, aes(x=x, y=y))+
   geom_raster(aes(fill=z))+
-  scale_y_reverse()+
-  geom_point(data = ctd, aes(x=DOY, y=Flag, z=NULL), pch = 25, size = 1.5, color = "white", fill = "black")+
-  geom_line(data = FCR_thermo_18, aes(x=DOY, y=thermo.depth, z=NULL), color = "black", lwd = 1)+
-  geom_point(data = FCR_thermo_18, aes(x=DOY, y=thermo.depth, z=NULL), pch = 21, size = 2, color = "white", fill = "black")+  
-  scale_fill_gradientn(colours = rev(blue2green2red(60)), na.value="gray")+
-  labs(x = "Day of year", y = "Depth (m)", title = "FCR Dissolved Oxygen Heatmap", fill="mg/L")+
-  theme_black()
-
-#pH
-p6 <- ggplot(interp_ph, aes(x=x, y=y))+
-  geom_raster(aes(fill=z))+
-  scale_y_reverse()+
-  geom_point(data = ctd, aes(x=DOY, y=Flag, z=NULL), pch = 25, size = 1.5, color = "white", fill = "black")+
-  geom_line(data = FCR_thermo_18, aes(x=DOY, y=thermo.depth, z=NULL), color = "black", lwd = 1)+
-  geom_point(data = FCR_thermo_18, aes(x=DOY, y=thermo.depth, z=NULL), pch = 21, size = 2, color = "white", fill = "black")+  
-  scale_fill_gradientn(colours = rev(blue2green2red(60)), na.value="gray")+
-  labs(x = "Day of year", y = "Depth (m)", title = "FCR pH Heatmap", fill="pH")+
-  theme_black()
-
-#oxidation reduction potential
-p7 <- ggplot(interp_orp, aes(x=x, y=y))+
-  geom_raster(aes(fill=z))+
-  scale_y_reverse()+
-  geom_point(data = ctd, aes(x=DOY, y=Flag, z=NULL), pch = 25, size = 1.5, color = "white", fill = "black")+
-  geom_line(data = FCR_thermo_18, aes(x=DOY, y=thermo.depth, z=NULL), color = "black", lwd = 1)+
-  geom_point(data = FCR_thermo_18, aes(x=DOY, y=thermo.depth, z=NULL), pch = 21, size = 2, color = "white", fill = "black")+  
-  scale_fill_gradientn(colours = rev(blue2green2red(60)), na.value="gray")+
-  labs(x = "Day of year", y = "Depth (m)", title = "FCR ORP Heatmap", fill="mV")+
-  theme_black()
-
-#descent rate
-p8 <- ggplot(interp_desc, aes(x=x, y=y))+
-  geom_raster(aes(fill=z))+
-  scale_y_reverse()+
-  geom_point(data = ctd, aes(x=DOY, y=Flag, z=NULL), pch = 25, size = 1.5, color = "white", fill = "black")+
+  scale_y_reverse(expand = c(0,0))+
+  scale_x_continuous(expand = c(0, 0)) +
   scale_fill_gradientn(colours = blue2green2red(60), na.value="gray")+
-  labs(x = "Day of year", y = "Depth (m)", title = "FCR Descent Rate Heatmap", fill = "m/s")+
-  theme_black()
+  labs(x = "Day of year", y = "Depth (m)", title = paste0(Reservoir," Yellow Substances Heatmap"),fill=expression(paste(mu,g/L)))+
+  theme_bw()
+#p5
 
-# create a grid that stacks all the heatmaps together. 
-grid.newpage()
-grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), ggplotGrob(p3),
-                ggplotGrob(p4), ggplotGrob(p5), ggplotGrob(p6),
-                ggplotGrob(p7),ggplotGrob(p8),
-                size = "first"))
-# end the make-pdf function. 
-dev.off()
+#Total concentration
+p6 <- ggplot(interp_total, aes(x=x, y=y))+
+  geom_raster(aes(fill=z))+
+  scale_y_reverse(expand = c(0,0))+
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_fill_gradientn(colours = blue2green2red(60), na.value="gray")+
+  labs(x = "Day of year", y = "Depth (m)", title = paste0(Reservoir," Total Phytoplankton Heatmap"),fill=expression(paste(mu,g/L)))+
+  theme_bw()
+#p6
+
+#Transmission
+p7 <- ggplot(interp_trans, aes(x=x, y=y))+
+  geom_raster(aes(fill=z))+
+  scale_y_reverse(expand = c(0,0))+
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_fill_gradientn(colours = blue2green2red(60), na.value="gray")+
+  labs(x = "Day of year", y = "Depth (m)", title = paste0(Reservoir, " Transmission % Heatmap"),fill=expression(paste(mu,g/L)))+
+  theme_bw()
+#p7
+
+# # create a grid that stacks all the heatmaps together. 
+# grid.newpage()
+# grid.draw(rbind(ggplotGrob(p1), ggplotGrob(p2), ggplotGrob(p3),
+#                 ggplotGrob(p4), ggplotGrob(p5), ggplotGrob(p6),
+#                 ggplotGrob(p7),
+#                 size = "first"))
+# # end the make-pdf function. 
+# dev.off()
+
+final_plot <- plot_grid(p1, p2, p3, p4, p5, p6, p7, ncol = 1) # rel_heights values control title margins
+ggsave(plot=final_plot, file= paste0("./Data/DataNotYetUploadedToEDI/Raw_fluoroprobe/",Reservoir,"_50_FP_2018.pdf"),
+       h=30, w=10, units="in", dpi=300,scale = 1)
