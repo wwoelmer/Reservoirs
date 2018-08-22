@@ -83,7 +83,7 @@ ph <- select(ctd, DOY, Depth_m, pH)
 orp <- select(ctd, DOY, Depth_m, ORP_mV)
 par <- select(ctd, DOY, Depth_m, PAR)
 sal <- select(ctd, DOY, Depth_m, Salinity)
-desc <- select(ctd, DOY, Depth_m, Descent.Rate..m.s.)
+desc <- select(ctd, DOY, Depth_m, `Descent Rate (m/s)`)
 
 
 # rLakeAnalyzer for Thermocline Depths
@@ -192,7 +192,7 @@ interp_sal <- interp(x=sal$DOY, y = sal$Depth_m, z = sal$Salinity,
 interp_sal <- interp2xyz(interp_sal, data.frame=T)
 
 #descent rate
-interp_desc <- interp(x=desc$DOY, y = desc$Depth_m, z = desc$Descent.Rate..m.s.,
+interp_desc <- interp(x=desc$DOY, y = desc$Depth_m, z = desc$`Descent Rate (m/s)`,
                       xo = seq(min(desc$DOY), max(desc$DOY), by = .1), 
                       yo = seq(0.1, 9.6, by = 0.01),
                       extrap = F, linear = T, duplicate = "strip")
