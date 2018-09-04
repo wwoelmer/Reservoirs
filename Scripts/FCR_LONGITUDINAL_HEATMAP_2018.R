@@ -143,3 +143,5 @@ final_plot1 <- plot_grid(p3, p4, ncol = 1,align = "hv",
                          labels=c('A','B'), label_size = 16) # rel_heights values control title margins
 ggsave(plot=final_plot1, file = "plot.pdf", device = "pdf",
        h=6, w=10, units="in", dpi=300, scale = 1)
+
+
