@@ -124,9 +124,8 @@ p4 = ggplot(data = plotdata2, aes(x = x, y = y))+
   geom_raster(aes(fill = z))+
   scale_y_reverse(expand = c(0,0))+
   scale_x_continuous(expand = c(0, 0), breaks = c(153,320,510,725,820), labels = c("Site 10","Site 20","Site 30","Site 45","Site 50")) +
-  theme(axis.text.x = element_blank())+
   scale_fill_gradientn(colours = blue2green2red(60), na.value="#BF0000",limits = c(1,10))+
-  labs(x = "", y = "Depth (m)", fill="NTU")+
+  labs(x = "Date", y = "Depth (m)", fill="NTU")+
   geom_vline(xintercept = 153, lwd = 1.5, colour = "black", lty = 2)+
   geom_vline(xintercept = 320, lwd = 1.5, colour = "black", lty = 2)+
   geom_vline(xintercept = 510, lwd = 1.5, colour = "black", lty = 2)+
