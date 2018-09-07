@@ -262,14 +262,18 @@ ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_boxplot_wo_2
   #   # Rename columns if needed (TargetName = OriginalName)
   #   rename(Flow_cms = flow10)
   
-Inflow_Final <- diff[,c(6,7,2,4,1,5,3)] #orders columns
+Inflow_Final <- diff[,c(6,7,2,4,1,5,8,3)] #orders columns
 Inflow_Final <- Inflow_Final[order(Inflow_Final$DateTime),] #orders file by date
 #Inflow_Final <- Inflow_Final[-c(1,which(Inflow_Final$DateTime>"2017-12-31 23:45:00")),] #limits data to before 2017 and takes out first row erroneous value
 Inflow_Final <- Inflow_Final %>%
   filter(DateTime < "2017-12-31 23:45:00")
 # Write to CSV
-write.csv(Inflow_Final, './Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_working.csv', row.names=F) 
+write.csv(Inflow_Final, './Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_working_07SEP18.csv', row.names=F) 
 
+##check newly calculated inflow values against CCC's old ones
+
+new_inflow <- read_csv("./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_working_07SEP18.csv")
+old_inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/FCR_weir_inflow_2013_2017_20180716.csv")
 
 ####### MISCELLANEOUS TEST CODE #########
 
