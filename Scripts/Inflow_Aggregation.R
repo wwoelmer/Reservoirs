@@ -272,8 +272,43 @@ write.csv(Inflow_Final, './Data/DataAlreadyUploadedToEDI/EDIProductionFiles/Make
 
 ##check newly calculated inflow values against CCC's old ones
 
-new_inflow <- read_csv("./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_working_07SEP18.csv")
-old_inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/FCR_weir_inflow_2013_2017_20180716.csv")
+new_inflow <- read_csv("./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_working_07SEP18.csv") %>%
+  mutate(time = date(DateTime),
+         month = month(DateTime),
+         year = year(DateTime)) %>%
+  group_by(month,year) %>% 
+  summarize(daily_flow_avg_new = mean(Flow_cms, na.rm = TRUE)) 
+
+old_inflow <- read_csv("C:/Users/Mary Lofton/Documents/RProjects/Reservoirs/Data/DataNotYetUploadedToEDI/Raw_inflow/FCR_weir_inflow_2013_2017_20180716.csv") %>%
+  mutate(month = month(time),
+         year = year(time))%>%
+  group_by(month,year)%>%
+  summarize(daily_flow_avg_old = mean(FLOW, na.rm = TRUE)) 
+  
+
+compare <- left_join(old_inflow, new_inflow, by = c("month","year")) %>%
+  mutate(date = paste0(month,"/",year))
+
+check <- compare[rowSums(is.na(compare)) > 0,]
+
+compare_plot <- ggplot(data = compare, aes(x = daily_flow_avg_new, y = daily_flow_avg_old, label = date))+
+  geom_point()+
+  geom_text(aes(label = date),hjust = 0.2, vjust = 1.2)+
+  xlim(0,0.15)+
+  ylim(0,0.15)+
+  #geom_smooth(method=lm)+
+  xlab("new_flow_cms")+
+  ylab("old_flow_cms")+
+  geom_abline(slope = 1, intercept = 0)+
+  stat_smooth_func(geom="text",method="lm",hjust=0,parse=TRUE, vjust = -3)+
+  theme_bw()
+compare_plot
+ggsave(plot = compare_plot, filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/old_vs_new_compare_monthly.png")
+
+#times that seem to have problems:
+#late March/early April 2014 (extreme outliers where new flow is much higher)
+#mid-May to mid_June 2016 (separate line altogether)
+#Jan-Feb 2016 ("crosspiece" on 1:1 line)
 
 ####### MISCELLANEOUS TEST CODE #########
 
