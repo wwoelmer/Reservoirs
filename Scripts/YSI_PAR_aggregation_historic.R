@@ -6,8 +6,8 @@ pacman::p_load(tidyverse, lubridate) ## Use pacman package to install/load other
 #### YSI Profiles ####
 
 # Load all data files ending in "_Profiles.csv" and merge into a dataframe
-raw_profiles <- dir(path = "./Data", pattern = "*_Profiles.csv") %>% 
-  map_df(~ read_csv(file.path(path = "./Data", .), col_types = cols(.default = "c")))
+raw_profiles <- dir(path = "./Data/DataAlreadyUploadedToEDI/CollatedDataForEDI/ProfilesData", pattern = "*_Profiles.csv") %>% 
+  map_df(~ read_csv(file.path(path = "./Data/DataAlreadyUploadedToEDI/CollatedDataForEDI/ProfilesData", .), col_types = cols(.default = "c")))
 
 profiles <- raw_profiles %>%
   # Rename columns if needed (TargetName = OriginalName)
