@@ -5,8 +5,8 @@ pacman::p_load(tidyverse, lubridate)
 
 #### In-lake and inflow water chemistry data ####
 # Load .csv files whose file names end in _Chemistry
-raw_chem <- dir(path = "./Data", pattern = "*_Chemistry.csv") %>% 
-  map_df(~ read_csv(file.path(path = "./Data", .), col_types = cols(.default = "c")))
+raw_chem <- dir(path = "./Data/DataAlreadyUploadedToEDI/CollatedDataForEDI/ChemistryData", pattern = "*_Chemistry.csv") %>% 
+  map_df(~ read_csv(file.path(path = "./Data/DataAlreadyUploadedToEDI/CollatedDataForEDI/ChemistryData", .), col_types = cols(.default = "c")))
 
 chemistry <- raw_chem %>%
   # Rename columns if needed (TargetName = OriginalName)
@@ -74,7 +74,7 @@ chemistry <- raw_chem %>%
   arrange(Reservoir, DateTime, Depth_m) 
   
 # Write to CSV
-write.csv(chemistry, './Formatted_Data/chemistry.csv', row.names=F)
+#write.csv(chemistry, './Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLCHemistry/chemistry.csv', row.names=F)
 
 #### Chemistry diagnostic plots ####
 chemistry_long <- chemistry %>% 
