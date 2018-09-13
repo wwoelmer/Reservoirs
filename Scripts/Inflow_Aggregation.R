@@ -270,7 +270,7 @@ Inflow_Final <- Inflow_Final %>%
 # Write to CSV
 write.csv(Inflow_Final, './Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_working_07SEP18.csv', row.names=F) 
 
-##check newly calculated inflow values against CCC's old ones
+#####check newly calculated inflow values against CCC's old ones and EDI
 
 new_inflow <- read_csv("./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_working_07SEP18.csv") %>%
   mutate(time = date(DateTime),
@@ -284,27 +284,59 @@ old_inflow <- read_csv("C:/Users/Mary Lofton/Documents/RProjects/Reservoirs/Data
          year = year(time))%>%
   group_by(month,year)%>%
   summarize(daily_flow_avg_old = mean(FLOW, na.rm = TRUE)) 
+
+edi <- read_csv("C:/Users/Mary Lofton/Downloads/inflow (1).csv") %>%
+  mutate(time = date(DateTime),
+         month = month(DateTime),
+         year = year(DateTime)) %>%
+  group_by(month,year) %>% 
+  summarize(daily_flow_avg_edi = mean(Flow_cms, na.rm = TRUE)) 
+
+compare <- left_join(old_inflow, edi, by = c("month","year"))
+
+compare <- left_join(compare, new_inflow, by = c("month","year")) %>%
+  mutate(date = paste0(year,"-",month),
+         #rpd = (daily_flow_avg_old - daily_flow_avg_new)/((daily_flow_avg_old + daily_flow_avg_new)/2),
+         real_date = as.Date(paste(date,"-01",sep="")))
+         #discrepancy_months = ifelse(abs(rpd)>=0.05,date,NA))
+
   
-
-compare <- left_join(old_inflow, new_inflow, by = c("month","year")) %>%
-  mutate(date = paste0(month,"/",year))
-
-check <- compare[rowSums(is.na(compare)) > 0,]
-
 compare_plot <- ggplot(data = compare, aes(x = daily_flow_avg_new, y = daily_flow_avg_old, label = date))+
   geom_point()+
   geom_text(aes(label = date),hjust = 0.2, vjust = 1.2)+
-  xlim(0,0.15)+
-  ylim(0,0.15)+
-  #geom_smooth(method=lm)+
+  xlim(0,0.5)+
+  #ylim(0,0.15)+
+  geom_smooth(method=lm)+
   xlab("new_flow_cms")+
   ylab("old_flow_cms")+
   geom_abline(slope = 1, intercept = 0)+
   stat_smooth_func(geom="text",method="lm",hjust=0,parse=TRUE, vjust = -3)+
   theme_bw()
 compare_plot
-ggsave(plot = compare_plot, filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/old_vs_new_compare_monthly.png")
+ggsave(plot = compare_plot, filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/old_vs_new_compare.png")
 
+# compare_rpd <- ggplot(data = compare, aes(x = real_date, y = rpd*100, label = discrepancy_months))+
+#   geom_point()+
+#   xlab("")+
+#   ylab("% difference in avg. monthly flow")+
+#   ggtitle("Note: negative % differences mean old flow value was lower than new value")+
+#   geom_text(aes(label = discrepancy_months),vjust = 1.2)+
+#   theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+#   theme_bw()
+# compare_rpd
+# ggsave(plot = compare_rpd, filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/old_vs_new_compare_percent_diff_monthly.png")
+
+plotdata <- compare %>% gather(daily_flow_avg_old:daily_flow_avg_new, key = "dataset",value = "flow_cms")
+
+timeseries <- ggplot(data = plotdata, aes(x = real_date, y = flow_cms, colour = dataset))+
+  geom_line(size = 1)+
+  geom_point(data = subset(plotdata, dataset == "daily_flow_avg_edi"), aes(x = real_date, y = flow_cms),size = 2)+
+  #scale_size_manual(breaks = c("daily_flow_avg_edi","daily_flow_avg_new","daily_flow_avg_old"), values = c(2,1.5,1))+
+  scale_colour_hue(labels = c("EDI dataset", "New dataset","Old dataset"))+
+  xlab("")+
+  theme_bw()
+timeseries
+ggsave(timeseries, filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/old_vs_new_vs_edi_compare_timeseries.png")
 #times that seem to have problems:
 #late March/early April 2014 (extreme outliers where new flow is much higher)
 #mid-May to mid_June 2016 (separate line altogether)
