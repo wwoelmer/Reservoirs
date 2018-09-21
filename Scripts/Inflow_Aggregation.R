@@ -342,6 +342,63 @@ ggsave(timeseries, filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/old_vs_
 #mid-May to mid_June 2016 (separate line altogether)
 #Jan-Feb 2016 ("crosspiece" on 1:1 line)
 
+##21SEP18 yet more inflow checks: resolving 2016 discrepancies
+new_inflow <- read_csv("./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_working_07SEP18.csv") %>%
+  mutate(date = date(DateTime),
+         year = year(DateTime)) %>%
+  group_by(date,year) %>% 
+  summarize(daily_flow_avg_new = mean(Flow_cms, na.rm = TRUE),
+            psia = mean(Pressure_psia, na.rm = TRUE),
+            inflow_pressure = mean(Pressure_psi, na.rm = TRUE),
+            baro_pressure = mean(Baro_pressure_psi, na.rm = TRUE)) 
+
+old_inflow <- read_csv("C:/Users/Mary Lofton/Documents/RProjects/Reservoirs/Data/DataNotYetUploadedToEDI/Raw_inflow/FCR_weir_inflow_2013_2017_20180716.csv") %>%
+  mutate(date = date(time),
+         year = year(time))%>%
+  group_by(date,year)%>%
+  summarize(daily_flow_avg_old = mean(FLOW, na.rm = TRUE)) 
+
+overlap = left_join(new_inflow, old_inflow, by = c("date", "year")) %>%
+  gather(daily_flow_avg_new:daily_flow_avg_old, key = "data_type", value = "value") %>%
+  filter(year == 2014)
+
+plotflow = subset(overlap, overlap$data_type == "daily_flow_avg_new" | overlap$data_type == "daily_flow_avg_old")
+
+flow <- ggplot(data = plotflow, aes(x = date, y = value, colour = data_type, group = data_type))+
+              geom_line(size = 1)+
+              ylab("cms")+
+              ggtitle("2016")+
+              theme_bw()
+flow
+ggsave(flow, filename = "2016_troubleshooting.png")
+
+plotpressure = subset(overlap, overlap$data_type == "baro_pressure" | overlap$data_type == "inflow_pressure") %>%
+  mutate(month = month(date))
+
+pressure <- ggplot(data = subset(plotpressure, month == 3), aes(x = date, y = value, colour = data_type, group = data_type))+
+  geom_line(size = 1)+
+  geom_vline(xintercept = plotpressure$date[118])+
+  ggtitle("2014")+
+  theme_bw()
+
+pressure
+ggsave(pressure, filename = "2014_troubleshooting.png")
+
+new_inflow <- read_csv("./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_working_07SEP18.csv")%>%
+  mutate(date = date(DateTime))%>%
+  filter((date >= "2016-04-17" & date <= "2016-04-20") | (date >= "2016-07-13" & date <= "2016-07-16")) %>%
+  mutate(month = month(date))
+old_inflow <- read_csv("C:/Users/Mary Lofton/Documents/RProjects/Reservoirs/Data/DataNotYetUploadedToEDI/Raw_inflow/FCR_weir_inflow_2013_2017_20180716.csv")%>%
+  mutate(date = date(time))%>%
+  filter((date >= "2016-04-17" & date <= "2016-04-20") | (date >= "2016-07-13" & date <= "2016-07-16")) %>%
+  mutate(month = month(date))
+
+zoom = ggplot(data = subset(new_inflow, month == 7), aes(x = DateTime, y = Pressure_psi))+
+  geom_line(size = 1)+
+  theme_bw()
+zoom
+
+
 ####### MISCELLANEOUS TEST CODE #########
 
 ## Identifies Missing dates
