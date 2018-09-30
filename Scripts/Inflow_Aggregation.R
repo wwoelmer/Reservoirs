@@ -399,23 +399,63 @@ zoom = ggplot(data = subset(new_inflow, month == 7), aes(x = DateTime, y = Press
 zoom
 
 
-####### MISCELLANEOUS TEST CODE #########
+##30SEP18 pressure plots for CCC
 
-## Identifies Missing dates
-testtime=Inflow_Final[,c(2,3)] #pulls out datetime and temp, bc I hate dealing with vectors rn sry
+new_inflow <- read_csv("./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_working_07SEP18.csv") %>%
+  mutate(date = date(DateTime),
+         year = year(DateTime)) %>%
+  filter(date == "2016-07-14") %>%
+  # group_by(date,year) %>% 
+  # summarize(daily_flow_avg_new = mean(Flow_cms, na.rm = TRUE),
+  #           psia = mean(Pressure_psia, na.rm = TRUE),
+  #           inflow_pressure = mean(Pressure_psi, na.rm = TRUE),
+  #           baro_pressure = mean(Baro_pressure_psi, na.rm = TRUE)) %>%
+  # filter(year == 2016) %>%
+  gather(Pressure_psi:Flow_cms, value = "value", key = "data_type")
+  # mutate(month = month(date)) %>%
+  # filter(month == 4)
 
-testtime2=testtime
-testtime2$Date=testtime2$DateTime
-testtime2$Date <- as_date(testtime2$DateTime) #changes DateTime to Date only
-testtime2=testtime2[order(testtime2$DateTime),]
-#creates data frame of start and end of missing data by day
-Test_stopdates=data_frame(start = testtime2$Date[ diff(testtime2$Date)>1],
-                            end = testtime2$Date[-1] [ diff(testtime2$Date)>1])
-#creates data frame of start and end of missing data, 15 min interval
-Test_stop15=data_frame(start15 = testtime2$DateTime[ diff(testtime2$DateTime)>900], end = testtime2$DateTime[-1] [ diff(testtime2$DateTime)>900])
-#note: only checks within parameters of existing data, so if your missing head and tail data, you are out of luck
+pressure_plot_April = ggplot(data = subset(new_inflow, data_type %in% c("Pressure_psi", "Baro_pressure_psi")), aes(x = DateTime, y = value, group = data_type, colour = data_type) )+
+  geom_point()+
+  geom_line()+
+  theme_bw()+
+  ggtitle("2016")
+pressure_plot_April
+ggsave(pressure_plot_April, filename = "./pressure_18APR16.png")
 
-#write.csv(Test_stop15[c(73:88),], './Formatted_Data/MakeEMLInflow/Missing15minIntervals_Inflow.csv', row.names = F) #created data set of collection dates
+pressure_plot_July = ggplot(data = subset(new_inflow, data_type %in% c("Pressure_psi", "Baro_pressure_psi")), aes(x = DateTime, y = value, group = data_type, colour = data_type) )+
+  geom_point()+
+  geom_line()+
+  theme_bw()+
+  ggtitle("2016")
+pressure_plot_July
 
-head(Inflow_Final)
-tail(Inflow_Final)
+manual_bv1 <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/Barometric_CSV/FCR_BV_20160714.csv", skip = 28) %>%
+  rename(Date = `Date/Time`) %>%
+  mutate(DateTime = parse_date_time(Date, 'dmy HMS',tz = "UTC"),
+         date = date(DateTime)) %>%
+  filter(date == "2016-07-14")
+
+manual_bv2 <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/Barometric_CSV/FCR_BV_20161014.csv", skip = 28) %>%
+  rename(Date = `Date/Time`) %>%
+  mutate(DateTime = parse_date_time(Date, 'dmy HMS',tz = "UTC"),
+         date = date(DateTime)) %>%
+  filter(date == "2016-07-14")
+
+manual_bv <- bind_rows(manual_bv1, manual_bv2) %>%
+  select(DateTime, `Pressure(psi)`) %>%
+  rename(Baro_pressure_psi = `Pressure(psi)`)%>%
+  mutate(value = Baro_pressure_psi, data_type = "Baro_pressure_psi_manual")%>%
+  select(-Baro_pressure_psi)
+
+july_prep <- new_inflow %>%
+  select(DateTime, data_type, value)
+july2 <- bind_rows(july_prep, manual_bv)
+
+pressure_plot_July = ggplot(data = subset(july2, data_type %in% c("Pressure_psi", "Baro_pressure_psi","Baro_pressure_psi_manual")), aes(x = DateTime, y = value, group = data_type, colour = data_type) )+
+  geom_point()+
+  geom_line()+
+  theme_bw()+
+  ggtitle("2016")
+pressure_plot_July
+ggsave(pressure_plot_July, filename = "./pressure_14JUL18.png")
