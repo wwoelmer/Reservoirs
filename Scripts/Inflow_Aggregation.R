@@ -404,16 +404,24 @@ zoom
 new_inflow <- read_csv("./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_working_07SEP18.csv") %>%
   mutate(date = date(DateTime),
          year = year(DateTime)) %>%
-  filter(date == "2016-07-14") %>%
-  # group_by(date,year) %>% 
-  # summarize(daily_flow_avg_new = mean(Flow_cms, na.rm = TRUE),
-  #           psia = mean(Pressure_psia, na.rm = TRUE),
-  #           inflow_pressure = mean(Pressure_psi, na.rm = TRUE),
-  #           baro_pressure = mean(Baro_pressure_psi, na.rm = TRUE)) %>%
-  # filter(year == 2016) %>%
-  gather(Pressure_psi:Flow_cms, value = "value", key = "data_type")
+  # filter(date == "2016-07-14") %>%
+  group_by(date,year) %>%
+  summarize(daily_flow_avg_new = mean(Flow_cms, na.rm = TRUE),
+            psia = mean(Pressure_psia, na.rm = TRUE),
+            inflow_pressure = mean(Pressure_psi, na.rm = TRUE),
+            baro_pressure = mean(Baro_pressure_psi, na.rm = TRUE)) %>%
+  filter(year == 2016) %>%
+  gather(daily_flow_avg_new:baro_pressure, value = "value", key = "data_type")
   # mutate(month = month(date)) %>%
   # filter(month == 4)
+
+pressure_plot = ggplot(data = subset(new_inflow, data_type %in% c("inflow_pressure", "baro_pressure")), aes(x = date, y = value, group = data_type, colour = data_type) )+
+  geom_point()+
+  geom_line()+
+  theme_bw()+
+  ggtitle("2016")
+pressure_plot
+ggsave(pressure_plot, filename = "./pressure_2016.png")
 
 pressure_plot_April = ggplot(data = subset(new_inflow, data_type %in% c("Pressure_psi", "Baro_pressure_psi")), aes(x = DateTime, y = value, group = data_type, colour = data_type) )+
   geom_point()+
