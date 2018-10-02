@@ -304,9 +304,11 @@ ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_downcorrecte
 
 
 inflow2 = ggplot(daily_inflow, aes(x = Date, y = daily_flow_avg))+
-  geom_line()+
+  geom_line(size = 1)+
   ylim(0,0.3)+
   ylab("Avg. daily flow (cms)")+
+  geom_line(data = new_inflow, aes(x = time, y = daily_flow_avg_new), colour = "red", size = 1)+
+  ggtitle("black line is downcorrected flow")+
   theme_bw()
 inflow2
 ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_no_outliers_downcorrected.png", inflow2, device = "png")
@@ -348,7 +350,7 @@ new_inflow <- read_csv("./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeE
   mutate(time = date(DateTime),
          month = month(DateTime),
          year = year(DateTime)) %>%
-  group_by(month,year) %>% 
+  group_by(time,year) %>% 
   summarize(daily_flow_avg_new = mean(Flow_cms, na.rm = TRUE)) 
 
 old_inflow <- read_csv("C:/Users/Mary Lofton/Documents/RProjects/Reservoirs/Data/DataNotYetUploadedToEDI/Raw_inflow/FCR_weir_inflow_2013_2017_20180716.csv") %>%
