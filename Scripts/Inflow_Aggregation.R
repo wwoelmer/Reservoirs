@@ -61,7 +61,7 @@ daily_flow[which(daily_flow$daily_pressure_avg <= 13.95),]
 ##10-24 to 10-30 but I thought it was down for longer than that?? may need to re-evaluate
 
 ##Read in catwalk pressure data
-pressure <- read_csv("./Data/DataNotYetUploadedToEDI/FCR_DOsonde_2012to2017.csv")
+pressure <- read_csv("./Data/DataNotYetUploadedToEDI/WVWA_DO_sondes/FCR_DOsonde_2012to2017.csv")
 pressure_a4d <- dir(path = "./Data/DataNotYetUploadedToEDI/Raw_inflow/Barometric_CSV", pattern = "FCR_BV*") %>% 
   map_df(~ read_csv(file.path(path = "./Data/DataNotYetUploadedToEDI/Raw_inflow/Barometric_CSV", .), col_types = cols(.default = "c"), skip = 28))
 pressure_a4d = pressure_a4d[,-c(1,3)]
@@ -96,7 +96,7 @@ plot_catwalk <- baro_pressure %>%
 
 daily_catwalk <- group_by(plot_catwalk, Date) %>% summarize(daily_pressure_avg = mean(Baro_pressure_psi)) %>% mutate(Year = as.factor(year(Date)))
 
-rawplot = ggplot(data = daily_catwalk[which(daily_catwalk$Year == 2016 & month(daily_catwalk$Date) == 12),])+
+rawplot = ggplot(data = daily_catwalk)+
   geom_point(aes(x = Date, y = daily_pressure_avg))+
   ylab("Daily avg. catwalk pressure (psi)")+
   theme_bw()
@@ -124,16 +124,63 @@ ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/raw_catwalk_pressur
 daily_catwalk[which(daily_catwalk$daily_pressure_avg <= 13.5 | daily_catwalk$daily_pressure_avg >= 14.2),]
 ##03-22 to 04-18 looks wonky
 
+##correction to inflow pressure to down-correct data after 18APR16
+#for some reasons the DateTimes are one hour off? I am confused about this but whatever
+#just setting the downcorrect cutoff to be an hour off to compensate
+inflow_pressure1 <- inflow_pressure %>%
+  mutate(Pressure_psi =  ifelse(DateTime >= "2016-04-18 15:15:00 EST", (Pressure_psi - 0.14), Pressure_psi)) %>%
+  rename(Pressure_psi_downcorrect = Pressure_psi) %>%
+  select(-Temp_C)
+
+downcorrect <- bind_cols(inflow_pressure, inflow_pressure1) %>%
+  select(-DateTime1)
+
+zoom <- subset(downcorrect, DateTime >= "2016-04-14 00:00:00 EST" & DateTime <= "2016-04-22 00:00:00 EST") %>%
+  gather(Pressure_psi, Pressure_psi_downcorrect, key = "manipulation", value = "psi")
+
+zoom_check <- ggplot(data = zoom, aes(x = DateTime, y = psi, group = manipulation, colour = manipulation))+
+  geom_point()+
+  geom_line()+
+  ggtitle("2016")+
+  theme_bw()
+zoom_check
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/downcorrection_check1.png", zoom_check, device = "png")
+
+plot_inflow1 <- downcorrect %>%
+  mutate(Date = date(DateTime))
+
+daily_flow1 <- group_by(plot_inflow1, Date) %>% 
+  summarize(daily_pressure_avg = mean(Pressure_psi),
+            daily_pressure_avg_downcorrect = mean(Pressure_psi_downcorrect)) %>% 
+  mutate(Year = as.factor(year(Date))) %>%
+  gather(daily_pressure_avg, daily_pressure_avg_downcorrect, key = "manipulation", value = "psi")
+
+rawplot1 = ggplot(data = daily_flow1, aes(x = Date, y = psi, colour = manipulation, group = manipulation))+
+  geom_line()+
+  ylab("Daily avg. inflow pressure (psi)")+
+  theme_bw()
+rawplot1
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/downcorrection_check2.png", rawplot1, device = "png")
+
+
+
 ##ARGH!! DATETIMES ARE NOT PLAYING NICELY!! cannot figure it out so just wrote to .csv and read in again
 inflow_pressure$DateTime <- as.POSIXct(inflow_pressure$DateTime, format = "%Y-%m-%d %I:%M:%S %p")
 baro_pressure$DateTime <- as.POSIXct(baro_pressure$DateTime, format = "%Y-%m-%d %I:%M:%S %p")
 
+downcorrect_final <- downcorrect %>%
+  select(-Pressure_psi) %>%
+  rename(Pressure_psi = Pressure_psi_downcorrect)
+downcorrect_final$DateTime <- as.POSIXct(downcorrect_final$DateTime, format = "%Y-%m-%d %I:%M:%S %p")
+
 write.csv(inflow_pressure, "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow.csv")
 write.csv(baro_pressure, "./Data/DataNotYetUploadedToEDI/Raw_inflow/baro.csv")
+write.csv(downcorrect_final, "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_downcorrect.csv")
 
 ##OK - round 2. let's see how the datetimes play together
 baro <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/baro.csv")
-inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow.csv")
+#inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow.csv")
+inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_downcorrect.csv")
 
 #correct datetime wonkiness from 2013-09-04 10:30 AM to 2014-02-05 11:00 AM
 inflow$DateTime[24304:39090] = inflow$DateTime[24304:39090] - (6*60+43)
@@ -168,6 +215,19 @@ both_pressures
 
 ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/all_pressure_types.png", both_pressures, device = "png")
 
+#using downcorrected version here to see if psia is negative
+psia = ggplot(data = subset(daily_pressure, pressure_type == "corrected"), aes(x = Date, y = psi))+
+  geom_line()+
+  geom_hline(yintercept = 0, colour = "red")+
+  geom_hline(yintercept = 0.1846535, colour = "blue")+
+  ylim(c(-0.1, 0.5))+
+  ggtitle("values below blue line will lead to undefined (negative) flow")+
+  ylab("Psia")+
+  theme_bw()
+psia
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/psia_downcorrect_check.png", psia, device = "png")
+
+
 # ##Test to develop regression between nonsense units and psi
 # nonsense <- read_csv("./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow.csv")
 # 
@@ -188,7 +248,8 @@ ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/all_pressure_types.
 
 #create vector of corrected pressure to match nomenclature from RPM's script
 diff <- diff %>%
-  filter(!is.na(Pressure_psia))
+  filter(!is.na(Pressure_psia)) %>%
+  filter(Pressure_psia >= 0)
 flow2 <- diff$Pressure_psia 
   
 #   ### CALCULATE THE FLOW RATES AT INFLOW ### #Taken from RPM's 'old school' script, verified 05-23-18
@@ -216,19 +277,30 @@ diff$Reservoir <- "FCR" #creates reservoir column to match other data sets
 diff$Site <- 100  #creates site column to match other data sets
 diff$Flow_cms <- flow_final #creates column for flow
 
+##CHECK FOR MISSING VALUES
+missing <- subset(diff, is.na(Flow_cms)) %>%
+  mutate(Year = year(DateTime))
+
+see_missing <- ggplot(data = missing, aes(x = DateTime, y = 1))+
+  geom_point(size = 1)+
+  theme_bw()
+see_missing
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/downcorrected_flow_negative.png", see_missing, device = "png")
+
 ##visualization of inflow
 plot_inflow <- diff %>%
   mutate(Date = date(DateTime))
 
-daily_inflow <- group_by(plot_inflow, Date) %>% summarize(daily_flow_avg = mean(Flow_cms)) %>% mutate(Year = as.factor(year(Date)))
-
+daily_inflow <- group_by(plot_inflow, Date) %>% 
+  summarize(daily_flow_avg = mean(Flow_cms, na.rm = TRUE)) %>% 
+  mutate(Year = as.factor(year(Date)))
 
 inflow = ggplot(daily_inflow, aes(x = Date, y = daily_flow_avg))+
   geom_point()+
   ylab("Avg. daily flow (cms)")+
   theme_bw()
 inflow
-ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow.png", inflow, device = "png")
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_downcorrected.png", inflow, device = "png")
 
 
 inflow2 = ggplot(daily_inflow, aes(x = Date, y = daily_flow_avg))+
@@ -237,7 +309,7 @@ inflow2 = ggplot(daily_inflow, aes(x = Date, y = daily_flow_avg))+
   ylab("Avg. daily flow (cms)")+
   theme_bw()
 inflow2
-ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_no_outliers.png", inflow2, device = "png")
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_no_outliers_downcorrected.png", inflow2, device = "png")
 
 inflow_hist = ggplot(data = daily_inflow, aes(x = daily_flow_avg, group = Year, fill = Year))+
   geom_density(alpha=0.5)+
@@ -245,7 +317,7 @@ inflow_hist = ggplot(data = daily_inflow, aes(x = daily_flow_avg, group = Year, 
   xlim(0,0.5)+
   theme_bw()
 inflow_hist
-ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_histogram_wo_20140405.png", inflow_hist, device = "png")
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_histogram_wo_20140405_downcorrected.png", inflow_hist, device = "png")
 
 
 inflow_boxplot = ggplot(data = daily_inflow, aes(x = Year, y = daily_flow_avg, group = Year, fill = Year))+
@@ -255,7 +327,7 @@ inflow_boxplot = ggplot(data = daily_inflow, aes(x = Year, y = daily_flow_avg, g
   ylim(0,0.3)+
   theme_bw()
 inflow_boxplot
-ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_boxplot_wo_20140405.png", inflow_boxplot, device = "png")
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_boxplot_wo_20140405_downcorrected.png", inflow_boxplot, device = "png")
 
   # FLOWS <- bind_cols(diff,flow10) #binds relevant columns
   # FLOWS <- FLOWS %>%
@@ -268,7 +340,7 @@ Inflow_Final <- Inflow_Final[order(Inflow_Final$DateTime),] #orders file by date
 Inflow_Final <- Inflow_Final %>%
   filter(DateTime < "2017-12-31 23:45:00")
 # Write to CSV
-write.csv(Inflow_Final, './Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_working_07SEP18.csv', row.names=F) 
+write.csv(Inflow_Final, './Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_downcorrected_02OCT18.csv', row.names=F) 
 
 #####check newly calculated inflow values against CCC's old ones and EDI
 
@@ -405,23 +477,25 @@ new_inflow <- read_csv("./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeE
   mutate(date = date(DateTime),
          year = year(DateTime)) %>%
   # filter(date == "2016-07-14") %>%
-  group_by(date,year) %>%
-  summarize(daily_flow_avg_new = mean(Flow_cms, na.rm = TRUE),
-            psia = mean(Pressure_psia, na.rm = TRUE),
-            inflow_pressure = mean(Pressure_psi, na.rm = TRUE),
-            baro_pressure = mean(Baro_pressure_psi, na.rm = TRUE)) %>%
+  # group_by(date,year) %>%
+  # summarize(daily_flow_avg_new = mean(Flow_cms, na.rm = TRUE),
+  #           psia = mean(Pressure_psia, na.rm = TRUE),
+  #           inflow_pressure = mean(Pressure_psi, na.rm = TRUE),
+  #           baro_pressure = mean(Baro_pressure_psi, na.rm = TRUE)) %>%
   filter(year == 2016) %>%
-  gather(daily_flow_avg_new:baro_pressure, value = "value", key = "data_type")
+  gather(Pressure_psi:Flow_cms, value = "value", key = "data_type")%>%
+  filter(date >= "2016-04-11")%>%
+  filter(date <= "2016-04-25")
   # mutate(month = month(date)) %>%
   # filter(month == 4)
 
-pressure_plot = ggplot(data = subset(new_inflow, data_type %in% c("inflow_pressure", "baro_pressure")), aes(x = date, y = value, group = data_type, colour = data_type) )+
+pressure_plot = ggplot(data = subset(new_inflow, data_type %in% c("Pressure_psi", "Baro_pressure_psi")), aes(x = DateTime, y = value, group = data_type, colour = data_type) )+
   geom_point()+
   geom_line()+
   theme_bw()+
-  ggtitle("2016")
+  ggtitle("2016: I think this inflow jump is a human artifact from download somehow")
 pressure_plot
-ggsave(pressure_plot, filename = "./pressure_2016.png")
+ggsave(pressure_plot, filename = "./April_2wk_2016.png")
 
 pressure_plot_April = ggplot(data = subset(new_inflow, data_type %in% c("Pressure_psi", "Baro_pressure_psi")), aes(x = DateTime, y = value, group = data_type, colour = data_type) )+
   geom_point()+
