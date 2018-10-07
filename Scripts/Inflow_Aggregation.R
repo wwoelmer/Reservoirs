@@ -486,8 +486,8 @@ new_inflow <- read_csv("./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeE
   #           baro_pressure = mean(Baro_pressure_psi, na.rm = TRUE)) %>%
   filter(year == 2016) %>%
   gather(Pressure_psi:Flow_cms, value = "value", key = "data_type")%>%
-  filter(date >= "2016-04-11")%>%
-  filter(date <= "2016-04-25")
+  filter(date >= "2016-05-30")%>%
+  filter(date <= "2016-07-11")
   # mutate(month = month(date)) %>%
   # filter(month == 4)
 
@@ -543,3 +543,24 @@ pressure_plot_July = ggplot(data = subset(july2, data_type %in% c("Pressure_psi"
   ggtitle("2016")
 pressure_plot_July
 ggsave(pressure_plot_July, filename = "./pressure_14JUL18.png")
+
+##07OCT18
+#calculating water residence time
+wrt <- read_csv('./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_downcorrected_02OCT18.csv') %>%
+  mutate(date = date(DateTime))%>%
+  filter(date >= "2016-05-30" & date <= "2016-07-11") %>%
+  mutate(wtr_res_time = 3.1E5/(Flow_cms*60*60*24))
+
+plot_wrt <- ggplot(data = wrt, aes(x = DateTime, y = wtr_res_time))+
+  geom_line(size = 1)+
+  theme_bw()
+plot_wrt
+
+hist_wrt <- ggplot(data = wrt, aes(x = wtr_res_time))+
+  geom_histogram(aes(y=..density..))+
+  geom_density(alpha = 0.2, fill = "blue")+
+  theme_bw()
+hist_wrt
+
+mean(wrt$wtr_res_time)
+sd(wrt$wtr_res_time)
