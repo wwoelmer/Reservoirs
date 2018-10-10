@@ -182,7 +182,7 @@ p3 <- ggplot(interp_brown, aes(x=x, y=y))+
   scale_y_reverse(expand = c(0,0))+
   scale_x_continuous(expand = c(0, 0)) +
   scale_fill_gradientn(colours = blue2green2red(60), na.value="gray")+
-  labs(x = "Day of year", y = "Depth (m)", title = paste0(Reservoir, " 'BROWNS' Heatmap"),fill=expression(paste(mu,g/L)))+
+  labs(x = "Day of year", y = "Depth (m)", title = paste0(Reservoir, " Brown Algae Heatmap"),fill=expression(paste(mu,g/L)))+
   theme_bw()
 #p3
 
