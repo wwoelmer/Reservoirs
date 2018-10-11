@@ -179,8 +179,8 @@ write.csv(downcorrect_final, "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_d
 
 ##OK - round 2. let's see how the datetimes play together
 baro <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/baro.csv")
-#inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow.csv")
-inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_downcorrect.csv")
+inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow.csv")
+#inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_downcorrect.csv")
 
 #correct datetime wonkiness from 2013-09-04 10:30 AM to 2014-02-05 11:00 AM
 inflow$DateTime[24304:39090] = inflow$DateTime[24304:39090] - (6*60+43)
@@ -288,19 +288,23 @@ see_missing
 ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/downcorrected_flow_negative.png", see_missing, device = "png")
 
 ##visualization of inflow
-plot_inflow <- diff %>%
+plot_inflow1 <- diff %>%
   mutate(Date = date(DateTime))
 
-daily_inflow <- group_by(plot_inflow, Date) %>% 
+daily_inflow1 <- group_by(plot_inflow1, Date) %>% 
   summarize(daily_flow_avg = mean(Flow_cms, na.rm = TRUE)) %>% 
   mutate(Year = as.factor(year(Date)))
 
-inflow = ggplot(daily_inflow, aes(x = Date, y = daily_flow_avg))+
-  geom_point()+
+inflow = ggplot(subset(daily_inflow1, Year == 2018), aes(x = Date, y = daily_flow_avg))+
+  geom_point(colour = "red")+
+  geom_line(colour = "red")+
+  geom_point(data = subset(daily_inflow, Year == 2018), aes(x = Date, y = daily_flow_avg), colour = "black")+
+  geom_line(data = subset(daily_inflow, Year == 2018), aes(x = Date, y = daily_flow_avg), colour = "black")+
   ylab("Avg. daily flow (cms)")+
+  ggtitle("2018: red is downcorrected flow")+
   theme_bw()
 inflow
-ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_downcorrected.png", inflow, device = "png")
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_2018_downcorrect_compare.png", inflow, device = "png")
 
 
 inflow2 = ggplot(daily_inflow, aes(x = Date, y = daily_flow_avg))+
@@ -564,3 +568,31 @@ hist_wrt
 
 mean(wrt$wtr_res_time)
 sd(wrt$wtr_res_time)
+
+##11OCT18 - check all downloads since April 2016
+inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow.csv")%>%
+  select(-c(1)) %>%
+  mutate(Date = date(DateTime))
+
+download_dates <- c("2016-06-09","2016-07-14","2016-10-14","2017-02-06",
+                    "2017-08-28", "2017-11-06", "2017-12-11", "2018-01-18",
+                    "2018-03-19","2018-05-23","2018-07-05","2018-07-23","2018-09-12")
+
+for (i in 1:length(download_dates)){
+  
+  plot_data = inflow %>%
+    filter(Date >= (as.Date(download_dates[i]) - 7))%>%
+    filter(Date <= (as.Date(download_dates[i]) + 7))
+  
+  pressure_plot = ggplot(data = plot_data, aes(x = DateTime, y = Pressure_psi))+
+    geom_point()+
+    geom_line()+
+    theme_bw()+
+    ggtitle(download_dates[i])
+  
+  filename = paste0("./Data/DataNotYetUploadedToEDI/Raw_inflow/",download_dates[i],"_download_pressure_check.png")
+  
+  ggsave(plot = pressure_plot, filename = filename)
+  
+}
+
