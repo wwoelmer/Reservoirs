@@ -179,8 +179,8 @@ write.csv(downcorrect_final, "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_d
 
 ##OK - round 2. let's see how the datetimes play together
 baro <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/baro.csv")
-inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow.csv")
-#inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_downcorrect.csv")
+#inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow.csv")
+inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_downcorrect.csv")
 
 #correct datetime wonkiness from 2013-09-04 10:30 AM to 2014-02-05 11:00 AM
 inflow$DateTime[24304:39090] = inflow$DateTime[24304:39090] - (6*60+43)
@@ -301,7 +301,7 @@ inflow = ggplot(subset(daily_inflow1, Year == 2018), aes(x = Date, y = daily_flo
   geom_point(data = subset(daily_inflow, Year == 2018), aes(x = Date, y = daily_flow_avg), colour = "black")+
   geom_line(data = subset(daily_inflow, Year == 2018), aes(x = Date, y = daily_flow_avg), colour = "black")+
   ylab("Avg. daily flow (cms)")+
-  ggtitle("2018: red is downcorrected flow")+
+  ggtitle("2018: red is downcorrected data")+
   theme_bw()
 inflow
 ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_2018_downcorrect_compare.png", inflow, device = "png")
@@ -343,10 +343,10 @@ ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_boxplot_wo_2
 Inflow_Final <- diff[,c(6,7,2,4,1,5,8,3)] #orders columns
 Inflow_Final <- Inflow_Final[order(Inflow_Final$DateTime),] #orders file by date
 #Inflow_Final <- Inflow_Final[-c(1,which(Inflow_Final$DateTime>"2017-12-31 23:45:00")),] #limits data to before 2017 and takes out first row erroneous value
-Inflow_Final <- Inflow_Final %>%
-  filter(DateTime < "2017-12-31 23:45:00")
+# Inflow_Final <- Inflow_Final %>%
+#   filter(DateTime < "2017-12-31 23:45:00")
 # Write to CSV
-write.csv(Inflow_Final, './Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_downcorrected_02OCT18.csv', row.names=F) 
+write.csv(Inflow_Final, './Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_w_2018_downcorrect.csv', row.names=F) 
 
 #####check newly calculated inflow values against CCC's old ones and EDI
 
@@ -569,14 +569,15 @@ hist_wrt
 mean(wrt$wtr_res_time)
 sd(wrt$wtr_res_time)
 
-##11OCT18 - check all downloads since April 2016
+##11OCT18 - check all downloads since April 2016 for CCC
 inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow.csv")%>%
   select(-c(1)) %>%
   mutate(Date = date(DateTime))
 
 download_dates <- c("2016-06-09","2016-07-14","2016-10-14","2017-02-06",
                     "2017-08-28", "2017-11-06", "2017-12-11", "2018-01-18",
-                    "2018-03-19","2018-05-23","2018-07-05","2018-07-23","2018-09-12")
+                    "2018-03-19","2018-05-23","2018-07-05","2018-07-23",
+                    "2018-08-20","2018-09-12")
 
 for (i in 1:length(download_dates)){
   
