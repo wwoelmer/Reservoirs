@@ -597,3 +597,30 @@ for (i in 1:length(download_dates)){
   
 }
 
+##checking flow on 11JUL18 against Ryan's salt slugs
+
+inflow <- read_csv('./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_w_2018.csv') %>%
+  mutate(Date = date(DateTime)) %>%
+  filter(Date == "2018-07-11")
+
+inflow_downcorrect <- read_csv('./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_w_2018_downcorrect.csv') %>%
+  mutate(Date = date(DateTime)) %>%
+  filter(Date == "2018-07-11")
+
+flow_check = ggplot(data = inflow, aes(x = DateTime, y = Flow_cms))+
+  geom_point()+
+  geom_line()+
+  geom_point(data = inflow_downcorrect, aes(x = DateTime, y = Flow_cms), colour = "blue")+
+  geom_line(data = inflow_downcorrect, aes(x = DateTime, y = Flow_cms), colour = "blue")+
+  geom_hline(yintercept = 0.003, colour = "red", size = 1)+
+  ggtitle("11JUL18: black is uncorrected, blue is downcorrected, red is salt slug flow")+
+  theme_bw()
+flow_check
+
+flow_check2 = ggplot(data = inflow_downcorrect, aes(x = DateTime, y = Flow_cms))+
+  geom_point(colour = "blue")+
+  geom_line(colour = "blue")+
+  geom_hline(yintercept = 0.003, colour = "red", size = 1)+
+  ggtitle("11JUL18: blue is downcorrected, red is salt slug flow")+
+  theme_bw()
+flow_check2
