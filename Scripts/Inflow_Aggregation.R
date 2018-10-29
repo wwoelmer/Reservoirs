@@ -137,7 +137,7 @@ write.csv(baro_pressure, "./Data/DataNotYetUploadedToEDI/Raw_inflow/baro.csv")
 
 ##OK - round 2. let's see how the datetimes play together
 baro <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/baro.csv")
-inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_downcorrect.csv")
+inflow <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow.csv")
 
 #correct datetime wonkiness from 2013-09-04 10:30 AM to 2014-02-05 11:00 AM
 inflow$DateTime[24304:39090] = inflow$DateTime[24304:39090] - (6*60+43)
