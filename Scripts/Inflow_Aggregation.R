@@ -1,14 +1,9 @@
-# Script to pull in FCR Inflow data from multiple years ####
-
-#### QAQC Inflow
-##Tasks
-#1. Plot to check for outliers
-#2. Fine tune QA/QC
+# Title: Prepare FCR inflow data for publication to EDI
+# Author: Mary Lofton
+# Date 18DEC18
 
 #install.packages('pacman') #installs pacman package, making it easier to load in packages
 pacman::p_load(tidyverse, lubridate, magrittr, ggplot2) #installs and loads in necessary packages for script
-setwd("~/Reservoirs") #just in case your working directory is wonky
-  #MEL: can you do this in RProjects? mine won't let me.....
 
 ##Data from pressure transducer
 # Load in files with names starting with FCR_inf_15min, should only be .csv files
@@ -147,13 +142,14 @@ diff = left_join(baro, inflow, by = "DateTime") %>%
   select(-c(1,4))
 diff <- distinct(diff)
 
-#eliminating pressure data we know is bad
+#eliminating pressure and temperature data we know is bad
 diff <- diff %>%
   mutate(Baro_pressure_psi = ifelse(DateTime <= "2014-04-28 05:45:00" & DateTime >= "2014-03-20 09:00:00",NA,Baro_pressure_psi),
-         Pressure_psi = ifelse(DateTime <= "2017-11-13 10:45:00" & DateTime >= "2017-10-15 06:00:00",NA,Pressure_psi)) %>%
+         Pressure_psi = ifelse(DateTime <= "2017-11-13 10:45:00" & DateTime >= "2017-10-15 06:00:00",NA,Pressure_psi),
+         Temp_C = ifelse(DateTime <= "2017-11-13 10:45:00" & DateTime >= "2017-10-15 06:00:00",NA,Temp_C)) %>%
   mutate(Pressure_psia = Pressure_psi - Baro_pressure_psi)
   
-#interpolate missing data
+#interpolate missing data - DO NOT DO THIS FOR EDI PUBLICATION FILES!####################
 x_2014 <- diff$DateTime[35864:39597]
 y_2014 <- diff$Baro_pressure_psi[35864:39597]
 inter_2014 = as.data.frame(approx(y_2014, method = "linear", n = 3734))
@@ -163,6 +159,7 @@ x_2017 <- diff$DateTime[169318:171456]
 y_2017 <- diff$Pressure_psi[169318:171456]
 inter_2017 = as.data.frame(approx(y_2017, method = "linear", n = 2139))
 diff$Pressure_psi[169318:171456] <- inter_2017$y
+#########################################################################################
 
 diff <- diff %>%
   mutate(Pressure_psia = Pressure_psi - Baro_pressure_psi)
@@ -243,17 +240,53 @@ inflow_boxplot = ggplot(data = daily_inflow, aes(x = Year, y = daily_flow_avg, g
 inflow_boxplot
 ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_boxplot.png", inflow_boxplot, device = "png")
 
-#final data wrangling for EDI
+##visualization of temp
+plot_temp <- diff %>%
+  mutate(Date = date(DateTime))
+
+daily_temp <- group_by(plot_temp, Date) %>% 
+  summarize(daily_temp_avg = mean(Temp_C, na.rm = TRUE)) %>% 
+  mutate(Year = as.factor(year(Date)),
+         Month = month(Date))
+
+temp2 = ggplot(daily_temp, aes(x = Date, y = daily_temp_avg))+
+  geom_line(size = 1)+
+  ylab("Avg. daily temp (C)")+
+  theme_bw()
+temp2
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_temp.png", temp2, device = "png")
+
+temp_hist = ggplot(data = daily_temp, aes(x = daily_temp_avg, group = Year, fill = Year))+
+  geom_density(alpha=0.5)+
+  xlab("Daily avg. temp (C)")+
+  theme_bw()
+temp_hist
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_temp_histogram.png", inflow_hist, device = "png")
+
+temp_boxplot = ggplot(data = daily_temp, aes(x = Year, y = daily_temp_avg, group = Year, fill = Year))+
+  geom_boxplot()+
+  #geom_jitter(alpha = 0.1)+
+  ylab("Daily avg. temp (C)")+
+  theme_bw()
+temp_boxplot
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_temp_boxplot.png", inflow_boxplot, device = "png")
+
+
+#final data wrangling 
 Inflow_Final <- diff[,c(6,7,2,4,1,5,8,3)] #orders columns
 Inflow_Final <- Inflow_Final[order(Inflow_Final$DateTime),] #orders file by date
 
-#write to file for working lab copy
+#write to file for working lab copy - USE THIS IF YOU HAVE RUN LINES 152-162
 write.csv(Inflow_Final, './Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_working.csv', row.names=F) 
 
+#write to file for EDI copy - if you have NOT run lines 152-162
 Inflow_Final <- Inflow_Final %>%
-  filter(DateTime <= "2017-12-31 18:45:00" & DateTime >= "2013-05-15 12:15:00")
+  filter(DateTime <= "2018-12-31 23:45:00" & DateTime >= "2013-05-15 12:15:00")
+
+####add flags????#####
+
 # Write to CSV
-write.csv(Inflow_Final, './Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_interpolation_2013_2017.csv', row.names=F) 
+write.csv(Inflow_Final, './Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_for_EDI_2013_2018.csv', row.names=F) 
 
 
 
