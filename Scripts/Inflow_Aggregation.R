@@ -5,6 +5,10 @@
 #install.packages('pacman') #installs pacman package, making it easier to load in packages
 pacman::p_load(tidyverse, lubridate, magrittr, ggplot2) #installs and loads in necessary packages for script
 
+#plotting theme
+mytheme = theme(axis.title = element_text(size = 16),
+                axis.text = element_text(size = 16))
+
 ##Data from pressure transducer
 # Load in files with names starting with FCR_inf_15min, should only be .csv files
 inflow_pressure <- dir(path = "./Data/DataNotYetUploadedToEDI/Raw_inflow/Inflow_CSV", pattern = "FCR_15min_Inf*") %>% 
@@ -215,13 +219,14 @@ daily_inflow <- group_by(plot_inflow, Date) %>%
   mutate(Year = as.factor(year(Date)),
          Month = month(Date))
 
-inflow2 = ggplot(daily_inflow, aes(x = Date, y = daily_flow_avg))+
+inflow2 = ggplot(subset(daily_inflow, Year == 2018 & Month == 10), aes(x = Date, y = daily_flow_avg))+
   geom_line(size = 1)+
-  ylim(0,0.3)+
+  ylim(0,0.15)+
   ylab("Avg. daily flow (cms)")+
-  theme_bw()
+  theme_bw()+
+  mytheme
 inflow2
-ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow.png", inflow2, device = "png")
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_Michael.png", inflow2, device = "png")
 
 inflow_hist = ggplot(data = daily_inflow, aes(x = daily_flow_avg, group = Year, fill = Year))+
   geom_density(alpha=0.5)+
@@ -236,7 +241,8 @@ inflow_boxplot = ggplot(data = daily_inflow, aes(x = Year, y = daily_flow_avg, g
   #geom_jitter(alpha = 0.1)+
   ylab("Daily avg. inflow (cms)")+
   ylim(0,0.3)+
-  theme_bw()
+  theme_bw()+
+  mytheme
 inflow_boxplot
 ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_boxplot.png", inflow_boxplot, device = "png")
 
@@ -310,5 +316,31 @@ hist_wrt
 
 mean(wrt$wtr_res_time)
 sd(wrt$wtr_res_time)
+
+##plot BVR wtr level
+lvl <- read_csv("./Data/DataNotYetUploadedToEDI/Raw_inflow/BVR_wtr_lvl.csv") %>%
+  mutate(DateTime = parse_date_time(DateTime, 'ymd HMS',tz = "EST"))
+
+plot_lvl <- ggplot(data = lvl, aes(x = DateTime, y = BVR_wtr_lvl_ft))+
+  geom_line(size = 1, col = "blue")+
+  geom_hline(yintercept = 0, col = "red", size = 1)+
+  xlab("")+
+  ylab("Beaverdam Water Level (ft)")+
+  theme_bw()+
+  mytheme
+plot_lvl
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/BVR_lvl.png", plot_lvl, device = "png")
+
+lvl$Year <- as.factor(year(lvl$DateTime))
+
+lvl_boxplot = ggplot(data = lvl, aes(x = DateTime, y = BVR_wtr_lvl_ft, group = Year, fill = Year))+
+  geom_boxplot()+
+  #geom_jitter(alpha = 0.1)+
+  ylab("Beaverdam Water Level (ft)")+
+  theme_bw()+
+  xlab("")+
+  mytheme
+lvl_boxplot
+ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/BVR_lvl_boxplot.png", lvl_boxplot, device = "png")
 
 
