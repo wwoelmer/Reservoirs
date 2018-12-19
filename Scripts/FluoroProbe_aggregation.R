@@ -21,10 +21,19 @@ raw_fp <- dir(path = "./Data/DataNotYetUploadedToEDI/Raw_fluoroprobe/FP_txt", pa
                     col_types = cols(.default = "c"), col_names = col_names, skip = 2), .id = "cast")
 
 fp2 <- left_join(raw_fp, fp_casts, by = c("cast")) %>%
+  rowwise() %>% 
   mutate(Reservoir = unlist(strsplit(x, split='_', fixed=TRUE))[2],
-         Site = unlist(strsplit(x, split='_', fixed=TRUE))[3]) %>%
-  mutate(Site = unlist(strsplit(Site, split='.', fixed=TRUE))[1])
+         Site = unlist(strsplit(x, split='_', fixed=TRUE))[3],
+         Site = unlist(strsplit(Site, split='.', fixed=TRUE))[1],
+         Reservoir = ifelse(x == "20180730_FCR50.txt","FCR",Reservoir),
+         Site = ifelse(x == "20180730_FCR50.txt","50",Site)) %>%
+  ungroup()
+fp2$Site <- as.numeric(fp2$Site)
 
+check <- subset(fp2, is.na(fp2$Site))
+unique(fp2$Reservoir)
+unique(fp2$Site)
+  
 # Rename and select useful columns; drop metrics we don't like such as cell count;
 # eliminate shallow depths because of quenching
 fp3 <- fp2 %>%
@@ -59,22 +68,22 @@ for (i in 1:length(unique(fp3$cast))){
   
 }
 
-#look at casts
-for (i in 1:length(unique(fp_downcasts$cast))){
-  profile = subset(fp_downcasts, cast == unique(fp_downcasts$cast)[i])
-  castname = profile$x[1]
-  profile2 = profile %>%
-    select(Depth_m, GreenAlgae_ugL, Bluegreens_ugL, Browns_ugL, Mixed_ugL, TotalConc_ugL)%>%
-    gather(GreenAlgae_ugL:TotalConc_ugL, key = spectral_group, value = ugL)
-  profile_plot <- ggplot(data = profile2, aes(x = ugL, y = Depth_m, group = spectral_group, colour = spectral_group))+
-    geom_path(size = 1)+
-    scale_y_reverse()+
-    ggtitle(castname)+
-    theme_bw()
-  filename = paste0("./Data/DataNotYetUploadedToEDI/Raw_fluoroprobe/check_plots/",castname,".png")
-  ggsave(filename = filename, plot = profile_plot, device = "png")
-  
-}
+# #look at casts
+# for (i in 1:length(unique(fp_downcasts$cast))){
+#   profile = subset(fp_downcasts, cast == unique(fp_downcasts$cast)[i])
+#   castname = profile$x[1]
+#   profile2 = profile %>%
+#     select(Depth_m, GreenAlgae_ugL, Bluegreens_ugL, Browns_ugL, Mixed_ugL, TotalConc_ugL)%>%
+#     gather(GreenAlgae_ugL:TotalConc_ugL, key = spectral_group, value = ugL)
+#   profile_plot <- ggplot(data = profile2, aes(x = ugL, y = Depth_m, group = spectral_group, colour = spectral_group))+
+#     geom_path(size = 1)+
+#     scale_y_reverse()+
+#     ggtitle(castname)+
+#     theme_bw()
+#   filename = paste0("./Data/DataNotYetUploadedToEDI/Raw_fluoroprobe/check_plots/",castname,".png")
+#   ggsave(filename = filename, plot = profile_plot, device = "png")
+#   
+# }
 
 
   
@@ -126,38 +135,56 @@ for (i in 1:length(unique(fp17v3$cast))){
   
 }
 
-#check wonky casts
-wonky1 <- fp2017_downcasts %>%
-  filter(Reservoir == "FCR" & Site == 50 & Date == "2017-05-29")
-#this is weird...repeated values of date and/or depth but different values of phytos
-#may just need to trash this day
+# #check wonky casts
+# wonky1 <- fp2017_downcasts %>%
+#   filter(Reservoir == "FCR" & Site == 50 & Date == "2017-05-29")
+# #this is weird...repeated values of date and/or depth but different values of phytos
+# #may just need to trash this day
+# 
+# wonky2 <- fp2017_downcasts %>%
+#   filter(Reservoir == "FCR" & Site == 50 & Date == "2017-07-05")
+# #same as wonky1
+# 
+# wonky3 <- fp2017_downcasts %>%
+#   filter(Reservoir == "FCR" & Site == 50 & Date == "2017-08-21")
+# 
+# #sadly think I'll just need to eliminate all three of these
 
-wonky2 <- fp2017_downcasts %>%
-  filter(Reservoir == "FCR" & Site == 50 & Date == "2017-07-05")
-#same as wonky1
+#eliminate wonky casts
+fp2017_final <- fp2017_downcasts
+# fp2017_final <- fp2017_downcasts %>%
+#   filter(cast != 38 & cast != 80 & cast != 161)
 
-wonky3 <- fp2017_downcasts %>%
-  filter(Reservoir == "FCR" & Site == 50 & Date == "2017-08-21")
+# #look at casts
+# for (i in 1:length(unique(fp2017_downcasts$cast))){
+#   profile = subset(fp2017_downcasts, cast == unique(fp2017_downcasts$cast)[i])
+#   castname = paste(profile$Reservoir[1],profile$Site[1],profile$Date[1],profile$Hour[1],sep = "_")
+#   profile2 = profile %>%
+#     select(Depth_m, GreenAlgae_ugL, Bluegreens_ugL, Browns_ugL, Mixed_ugL, TotalConc_ugL)%>%
+#     gather(GreenAlgae_ugL:TotalConc_ugL, key = spectral_group, value = ugL)
+#   profile_plot <- ggplot(data = profile2, aes(x = ugL, y = Depth_m, group = spectral_group, colour = spectral_group))+
+#     geom_path(size = 1)+
+#     scale_y_reverse()+
+#     ggtitle(castname)+
+#     theme_bw()
+#   filename = paste0("./Data/DataNotYetUploadedToEDI/Raw_fluoroprobe/check_plots/",castname,".png")
+#   ggsave(filename = filename, plot = profile_plot, device = "png")
+# 
+# }
 
-#sadly think I'll just need to eliminate all three of these
+#merge two datasets
+colnames(fp_downcasts)
+colnames(fp2017_final)
 
+fp_merge <- fp_downcasts %>%
+  select(-x, -cast) %>%
+  mutate(Site = as.numeric(Site))
 
-#look at casts
-for (i in 1:length(unique(fp2017_downcasts$cast))){
-  profile = subset(fp2017_downcasts, cast == unique(fp2017_downcasts$cast)[38])
-  castname = paste(profile$Reservoir[1],profile$Site[1],profile$Date[1],profile$Hour[1],sep = "_")
-  profile2 = profile %>%
-    select(Depth_m, GreenAlgae_ugL, Bluegreens_ugL, Browns_ugL, Mixed_ugL, TotalConc_ugL)%>%
-    gather(GreenAlgae_ugL:TotalConc_ugL, key = spectral_group, value = ugL)
-  profile_plot <- ggplot(data = profile2, aes(x = ugL, y = Depth_m, group = spectral_group, colour = spectral_group))+
-    geom_path(size = 1)+
-    scale_y_reverse()+
-    ggtitle(castname)+
-    theme_bw()
-  filename = paste0("./Data/DataNotYetUploadedToEDI/Raw_fluoroprobe/check_plots/",castname,".png")
-  ggsave(filename = filename, plot = profile_plot, device = "png")
-  
-}
+fp2017_merge <- fp2017_final %>%
+  select(-filename, -Date, -Hour, -cast)
 
+fp_final <- bind_rows(fp_merge, fp2017_merge) %>%
+  arrange(Reservoir, Site, DateTime)
 
+write.csv(fp_final, "./Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLFluoroProbe/FluoroProbe.csv", row.names = FALSE)
   
