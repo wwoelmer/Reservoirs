@@ -282,14 +282,33 @@ ggsave(filename = "./Data/DataNotYetUploadedToEDI/Raw_inflow/inflow_temp_boxplot
 Inflow_Final <- diff[,c(6,7,2,4,1,5,8,3)] #orders columns
 Inflow_Final <- Inflow_Final[order(Inflow_Final$DateTime),] #orders file by date
 
+Inflow_Final <- Inflow_Final %>%
+  mutate(Flow_cms = ifelse(Flow_cms <= 0, NA, Flow_cms))
+
+#add flags
+Inflow_Final <- Inflow_Final %>%
+  mutate(Flag_Pressure_psi = ifelse(DateTime <= "2017-11-13 10:45:00" & DateTime >= "2017-10-15 06:00:00",5,ifelse(DateTime >= "2016-04-18 15:15:00 EST",1,0)),
+         Flag_Baro_pressure_psi = ifelse(DateTime <= "2014-04-28 05:45:00" & DateTime >= "2014-03-20 09:00:00",2,0),
+         Flag_Temp = ifelse(DateTime <= "2017-11-13 10:45:00" & DateTime >= "2017-10-15 06:00:00",5,0),
+         Flag_Flow = ifelse(DateTime <= "2014-04-28 05:45:00" & DateTime >= "2014-03-20 09:00:00",2,
+                            ifelse(DateTime <= "2017-11-13 10:45:00" & DateTime >= "2017-10-15 06:00:00",5,
+                                   ifelse(DateTime >= "2016-04-18 15:15:00 EST" & Pressure_psia <= 0.18 & is.na(Flow_cms),13,
+                                          ifelse(DateTime >= "2016-04-18 15:15:00 EST",1,
+                                                 ifelse(Pressure_psia <= 0.18 & is.na(Flow_cms),3,0))))))
+
+Inflow_Final$Flag_Pressure_psia <- 0
+
+Inflow_Final <- Inflow_Final[,c(1,2,3,4,5,6,7,8,9,10,13,12,11)]
+Inflow_Final <- Inflow_Final[-1,]
+
+
+
 #write to file for working lab copy - USE THIS IF YOU HAVE RUN LINES 152-162
 write.csv(Inflow_Final, './Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_working.csv', row.names=F) 
 
 #write to file for EDI copy - if you have NOT run lines 152-162
 Inflow_Final <- Inflow_Final %>%
   filter(DateTime <= "2018-12-31 23:45:00" & DateTime >= "2013-05-15 12:15:00")
-
-####add flags????#####
 
 # Write to CSV
 write.csv(Inflow_Final, './Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLInflow/inflow_for_EDI_2013_2018.csv', row.names=F) 
