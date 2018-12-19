@@ -3,7 +3,7 @@ Sampling times are indicated in the DateTime column, and were collected in the A
 SAMPLING INSTRUMENT
 Sampling was conducted using a bbe-moldaenke FluoroProbe, which was sent to bbe-moldaenke for calibration and maintenance yearly according to the standards and practices of bbe-moldaenke between December-April starting in 2016. The FluoroProbe uses fluorescence from six LED wavelengths (525 nm, 570 nm, 610 nm, 370 nm, 590 nm, 470 nm) to calculate biomass of four phytoplankton spectral groups (green algae, brown algae, bluegreen algae, and mixed assemblages) by comparing the sample spectrum to the fluorescence spectra of individual algal divisions measured during calibration.
 CAVEATS OF FLUORESCENCE-BASED DATA
-Measurements taken near the water’s surface may be less accurate due to quenching of photosynthetic pigments at high light intensities, such as might be experienced at shallow depths.
+Measurements taken near the water's surface may be less accurate due to quenching of photosynthetic pigments at high light intensities, such as might be experienced at shallow depths.
 Due to differences in water color among different water bodies, a universal yellow substances offset may not be appropriate for all sampled water bodies. Dissolved organic carbon (DOC) in the reservoirs reported here tends to be low (2-5 mgL), but direct comparisons of phytoplankton biomass values among reservoirs should be treated with caution.
 Measurements taken near the bottom of the water column or during high-turbidity events may be less accurate due to inference of high amounts of particulate matter with the fluorescence signal.
 TEMPERATURE DATA

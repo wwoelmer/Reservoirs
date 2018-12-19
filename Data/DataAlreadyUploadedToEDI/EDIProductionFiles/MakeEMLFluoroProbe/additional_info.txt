@@ -1,1 +1,4 @@
-﻿
+﻿bbe FluoroProbe User Manual. (2013) (Version 2.4 E1). Schwentinental, Germany: bbe Moldaenke GmbH.
+Beutler, M., Wiltshire, K. H., Meyer, B., Moldaenke, C., Luring, C., Meyerhofer, M., _ Dau, H. (2002). A fluorometric method for the differentiation of algal populations in vivo and in situ. Photosynthesis Research, 72(1), 39-53. https://doi.org/10.1023/A:1016026607048
+Catherine, A., Escoffier, N., Belhocine, A., Nasri, A. B., Hamlaoui, S., Yepremian, C., _ Troussellier, M. (2012). On the use of the FluoroProbe_, a phytoplankton quantification method based on fluorescence excitation spectra for large-scale surveys of lakes and reservoirs. Water Research, 46(6), 1771-1784. Retrieved from http://www.sciencedirect.com/science/article/pii/S0043135411008505
+Kring, S. A., Figary, S. E., Boyer, G. L., Watson, S. B., & Twiss, M. R. (2014). Rapid in situ measures of phytoplankton communities using the bbe FluoroProbe: evaluation of spectral calibration, instrument intercompatibility, and performance range. Canadian Journal of Fisheries and Aquatic Sciences, 71(7), 1087-1095. https://doi.org/10.1139/cjfas-2013-0599

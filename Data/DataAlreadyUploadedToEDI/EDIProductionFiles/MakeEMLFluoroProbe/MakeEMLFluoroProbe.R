@@ -32,3 +32,75 @@ library(EMLassemblyline)
 import_templates(path = "C:/Users/Mary Lofton/Documents/Github/Reservoirs/Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLFluoroProbe",
                  license = "CCBY",
                  data.files = c("FluoroProbe"))
+
+#Step 6: Script your workflow
+#that's what this is, silly!
+
+#Step 7: Abstract
+#copy-paste the abstract from your Microsoft Word document into abstract.txt
+#if you want to check your abstract for non-allowed characters, go to:
+#https://pteo.paranoiaworks.mobi/diacriticsremover/
+#paste text and click remove diacritics
+
+#Step 8: Methods
+#copy-paste the methods from your Microsoft Word document into methods.txt
+#if you want to check your abstract for non-allowed characters, go to:
+#https://pteo.paranoiaworks.mobi/diacriticsremover/
+#paste text and click remove diacritics
+
+#Step 9: Additional information
+#nothing mandatory for Carey Lab in this section
+
+#Step 10: Keywords
+#DO NOT EDIT KEYWORDS FILE USING A TEXT EDITOR!! USE EXCEL!!
+#see the LabKeywords.txt file for keywords that are mandatory for all Carey Lab data products
+
+#Step 11: Personnel
+#copy-paste this information in from your metadata document
+#Cayelan needs to be listed several times; she has to be listed separately for her roles as
+#PI, creator, and contact, and also separately for each separate funding source (!!)
+
+#Step 12: Attributes
+#grab attribute names and definitions from your metadata word document
+#for units....
+# View and search the standard units dictionary
+view_unit_dictionary()
+#put flag codes and site codes in the definitions cell
+#force reservoir to categorical
+
+#if you need to make custom units that aren't in the unit dictionary,
+#use the customunits.txt file and the directions on the EMLassemblyline Github to do so
+
+#Step 13: Close files
+#if all your files aren't closed, sometimes functions don't work
+
+#Step 14: Categorical variables
+# View documentation for this function
+?define_catvars
+
+# Run this function for your dataset
+define_catvars(path = "C:/Users/Mary Lofton/Documents/Github/Reservoirs/Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLFluoroProbe")
+
+#open the created file IN A SPREADSHEET EDITOR and add a definition for each category
+
+#Step 15: Geographic coverage
+#copy-paste the bounding_boxes.txt file that is Carey Lab specific into your working directory
+
+#Step 16: Make EML
+# View documentation for this function
+
+#log into the staging environment using carylab6 and 
+?make_eml
+
+# Run this function
+make_eml(path = "C:/Users/Mary Lofton/Documents/Github/Reservoirs/Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLFluoroProbe",
+         dataset.title = "Time-series of high-frequency profiles of fluorescence-based phytoplankton spectral groups in Beaverdam Reservoir, Carvins Cove Reservoir, Falling Creek Reservoir, Gatewood Reservoir, and Spring Hollow Reservoir in southwestern Virginia, USA 2013-2017",
+         data.files = c("FluoroProbe"),
+         data.files.description = c("Reservoir FluoroProbe dataset."),
+         #data.files.quote.character = c("\"", "\""),
+         temporal.coverage = c("2014-05-04", "2018-12-17"),
+         geographic.description = "Southwestern Virginia, USA, North America",
+         #geographic.coordinates = c("69.0", "28.53", "28.38", "-119.95"),
+         maintenance.description = "ongoing", 
+         user.id = "carylab6",
+         package.id = "edi.272.1")
