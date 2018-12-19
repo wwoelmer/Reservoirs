@@ -1,0 +1,31 @@
+attributeName	attributeDefinition	class	unit	dateTimeFormatString	missingValueCode	missingValueCodeExplanation
+Reservoir		character				
+Site		numeric	!Add units here!			
+DateTime		Date		!Add datetime specifier here!		
+Depth_m		numeric	!Add units here!			
+GreenAlgae_ugL		numeric	!Add units here!			
+Bluegreens_ugL		numeric	!Add units here!			
+BrownAlgae_ugL		numeric	!Add units here!			
+MixedAlgae_ugL		numeric	!Add units here!			
+YellowSubstances_ugL		numeric	!Add units here!			
+TotalConc_ugL		numeric	!Add units here!			
+Transmission		numeric	!Add units here!			
+Temp_degC		numeric	!Add units here!			
+RFU_525nm		numeric	!Add units here!			
+RFU_570nm		numeric	!Add units here!			
+RFU_610nm		numeric	!Add units here!			
+RFU_370nm		numeric	!Add units here!			
+RFU_590nm		numeric	!Add units here!			
+RFU_470nm		numeric	!Add units here!			
+Flag_GreenAlgae		numeric	!Add units here!			
+Flag_BluereenAlgae		numeric	!Add units here!			
+Flag_BrownAlgae		numeric	!Add units here!			
+Flag_MixedAlgae		numeric	!Add units here!			
+Flag_TotalConc		numeric	!Add units here!			
+Flag_Temp		numeric	!Add units here!			
+Flag_Transmission		numeric	!Add units here!			
+Flag_525nm		numeric	!Add units here!			
+Flag_570nm		numeric	!Add units here!			
+Flag_610nm		numeric	!Add units here!			
+Flag_370nm		numeric	!Add units here!			
+Flag_590nm		numeric	!Add units here!			
