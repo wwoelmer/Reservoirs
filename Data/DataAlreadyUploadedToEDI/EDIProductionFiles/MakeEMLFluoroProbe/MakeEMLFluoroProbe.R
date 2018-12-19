@@ -22,3 +22,13 @@ library(EMLassemblyline)
 
 #Step 4: Identify the types of data in your dataset
 #right now the only supported option is "table"
+
+#Step 5: Import the core metadata templates
+
+# View documentation for this function
+?import_templates
+
+# Import templates for an example dataset licensed under CC0, with 2 tables.
+import_templates(path = "C:/Users/Mary Lofton/Documents/Github/Reservoirs/Data/DataAlreadyUploadedToEDI/EDIProductionFiles/MakeEMLFluoroProbe",
+                 license = "CCBY",
+                 data.files = c("FluoroProbe"))
